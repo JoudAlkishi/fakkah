@@ -1,9 +1,8 @@
-import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
-  Dimensions,
   Image,
   ScrollView,
   StatusBar,
@@ -11,78 +10,27 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
-const { width, height } = Dimensions.get("window");
-
+// For commit
 export default function SignInPage() {
   const router = useRouter();
 
-  // Animation refs
   const logoAnim = useRef(new Animated.Value(0)).current;
-  const titleAnim = useRef(new Animated.Value(50)).current;
-  const formAnim = useRef(new Animated.Value(50)).current;
-  const buttonAnim = useRef(new Animated.Value(50)).current;
-  const iconsAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // States for OTP flow
   const [otpSent, setOtpSent] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const animationSequence = Animated.sequence([
-      Animated.timing(logoAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(titleAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(formAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(iconsAnim, {
-        toValue: 1,
-        duration: 700,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]);
-
-    const pulseLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    animationSequence.start();
-    pulseLoop.start();
-
-    return () => {
-      pulseLoop.stop();
-    };
+    // Only logo animation
+    Animated.timing(logoAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   const handleButtonPress = () => {
@@ -114,73 +62,24 @@ export default function SignInPage() {
         translucent={false}
       />
       <View style={styles.background}>
-        {/* Floating icons with low opacity */}
-        <Animated.View
-          style={[styles.floatingIcon, styles.icon1, { opacity: iconsAnim }]}
-        >
-          <MaterialIcons
-            name="trending-up"
-            size={30}
-            color="rgba(0, 26, 110, 0.1)"
-          />
-        </Animated.View>
-        <Animated.View
-          style={[styles.floatingIcon, styles.icon2, { opacity: iconsAnim }]}
-        >
-          <FontAwesome5 name="coins" size={25} color="rgba(0, 26, 110, 0.1)" />
-        </Animated.View>
-        <Animated.View
-          style={[styles.floatingIcon, styles.icon3, { opacity: iconsAnim }]}
-        >
-          <MaterialIcons
-            name="analytics"
-            size={28}
-            color="rgba(0, 26, 110, 0.1)"
-          />
-        </Animated.View>
-        <Animated.View
-          style={[styles.floatingIcon, styles.icon4, { opacity: iconsAnim }]}
-        >
-          <FontAwesome5
-            name="chart-line"
-            size={24}
-            color="rgba(0, 26, 110, 0.1)"
-          />
-        </Animated.View>
-
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
-            {/* Logo */}
             <Animated.View
               style={[styles.logoContainer, { opacity: logoAnim }]}
             >
               <Image
-                source={require("@/assets/images/Logo.png")}
+                source={require("@/assets/images/GreenFakatk.png")}
                 style={styles.image}
                 resizeMode="contain"
               />
             </Animated.View>
 
-            {/* Title */}
-            <Animated.View
-              style={[
-                styles.titleContainer,
-                { transform: [{ translateY: titleAnim }] },
-              ]}
-            >
+            <View style={styles.titleContainer}>
               <Text style={styles.title}>تسجيل الدخول</Text>
-              <Text style={styles.subtitle}>
-                مرحباً بك مرة أخرى! سجل دخولك للمتابعة
-              </Text>
-            </Animated.View>
+              <Text style={styles.subtitle}>مرحبا هيل، عداد السيل</Text>
+            </View>
 
-            {/* Form */}
-            <Animated.View
-              style={[
-                styles.formContainer,
-                { transform: [{ translateY: formAnim }] },
-              ]}
-            >
+            <View style={styles.formContainer}>
               {!otpSent ? (
                 <View style={styles.inputContainer}>
                   <MaterialIcons
@@ -219,15 +118,9 @@ export default function SignInPage() {
                   />
                 </View>
               )}
-            </Animated.View>
+            </View>
 
-            {/* Button */}
-            <Animated.View
-              style={[
-                styles.buttonContainer,
-                { transform: [{ scale: pulseAnim }] },
-              ]}
-            >
+            <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.signInButton, loading && { opacity: 0.7 }]}
                 onPress={handleButtonPress}
@@ -250,26 +143,20 @@ export default function SignInPage() {
                   />
                 )}
               </TouchableOpacity>
-            </Animated.View>
+            </View>
 
-            {/* Sign Up Container */}
-            <Animated.View
-              style={[styles.signUpContainer, { opacity: iconsAnim }]}
-            >
+            <View style={styles.signUpContainer}>
               <Text style={styles.signUpText}>ليس لديك حساب؟ </Text>
               <TouchableOpacity onPress={() => router.push("/signup")}>
                 <Text style={styles.signUpLink}>إنشاء حساب جديد</Text>
               </TouchableOpacity>
-            </Animated.View>
+            </View>
 
-            {/* Additional Info */}
-            <Animated.View
-              style={[styles.infoContainer, { opacity: iconsAnim }]}
-            >
+            <View style={styles.infoContainer}>
               <Text style={styles.infoText}>
                 انضم إلى أكثر من 10,000 مستثمر
               </Text>
-            </Animated.View>
+            </View>
           </View>
         </ScrollView>
       </View>
@@ -296,25 +183,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   image: {
-    width: 120,
+    width: 95,
     height: 120,
+    bottom: 130,
   },
   titleContainer: {
-    alignItems: "center",
     marginBottom: 20,
   },
   title: {
     fontSize: 32,
     fontFamily: "Almarai-Bold",
     color: "#001a6e",
-    textAlign: "center",
+    textAlign: "right",
     marginBottom: 4,
+    marginLeft: 130,
+    bottom: 50,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: "Almarai-Regular",
     color: "#666",
-    textAlign: "center",
+    textAlign: "right",
+    bottom: 50,
   },
   formContainer: {
     width: "100%",
@@ -330,6 +220,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(0, 26, 110, 0.1)",
     marginBottom: 16,
+    bottom: 50,
   },
   inputIcon: {
     marginRight: 10,
@@ -343,8 +234,10 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 20,
+    marginBottom: 50,
     width: "100%",
     alignItems: "center",
+    bottom: 60,
   },
   signInButton: {
     backgroundColor: "#01a736",
@@ -372,10 +265,10 @@ const styles = StyleSheet.create({
   signUpContainer: {
     flexDirection: "row",
     alignItems: "center",
-    direction:"rtl",
+    direction: "rtl",
     marginTop: 20,
     marginBottom: 15,
-    top: 60
+    top: 75,
   },
   signUpText: {
     fontSize: 14,
@@ -389,32 +282,12 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     alignItems: "center",
-    top: 60
+    top: 70,
   },
   infoText: {
     color: "#999",
     fontSize: 14,
     fontFamily: "Almarai-Regular",
     textAlign: "center",
-  },
-  // Floating Icons
-  floatingIcon: {
-    position: "absolute",
-  },
-  icon1: {
-    top: height * 0.15,
-    left: width * 0.1,
-  },
-  icon2: {
-    top: height * 0.25,
-    right: width * 0.15,
-  },
-  icon3: {
-    bottom: height * 0.35,
-    left: width * 0.08,
-  },
-  icon4: {
-    bottom: height * 0.25,
-    right: width * 0.12,
   },
 });

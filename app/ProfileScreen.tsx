@@ -1,17 +1,14 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import React from "react";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function ProfileScreen() {
-    const router = useRouter();
-    
     const profileItems = [
         {
             icon: "person",
@@ -49,12 +46,8 @@ export default function ProfileScreen() {
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity 
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                >
-                    <MaterialIcons name="arrow-back" size={24} color="#001a6e" />
-                </TouchableOpacity>
+                <View style={styles.placeholder} />
+                <Text style={styles.headerTitle}>حسابي الشخصي</Text>
                 <View style={styles.placeholder} />
             </View>
 
@@ -122,14 +115,6 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: "#f1f5f9",
     },
-    backButton: {
-        width: 40,
-        height: 40,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 20,
-        backgroundColor: "#f8fafc",
-    },
     headerTitle: {
         fontSize: 20,
         fontFamily: "Almarai-Bold",
@@ -142,6 +127,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         paddingHorizontal: 24,
+        paddingBottom: 100, // Add padding to avoid bottom navigation
     },
     profileCard: {
         backgroundColor: "#ffffff",

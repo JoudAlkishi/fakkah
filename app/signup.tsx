@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
-  Dimensions,
   Image,
   ScrollView,
   StatusBar,
@@ -15,13 +14,12 @@ import {
   View,
 } from "react-native";
 
-const { width, height } = Dimensions.get("window");
-
+// For commit
 export default function SignUpPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [userType, setUserType] = useState("");
-  const [formData, setFormData] = useState({
+  const [wantsAngelInvestor, setWantsAngelInvestor] = useState("");
+  const [formData, setFormData] = useState({ 
     nationalId: "",
     name: "",
     email: "",
@@ -30,7 +28,7 @@ export default function SignUpPage() {
     confirmPassword: "",
     birthDate: "",
     walletType: "Apple Pay",
-    // Angel investor specific fields
+
     budget: "",
     interestField: "",
     riskLevel: "",
@@ -57,7 +55,6 @@ export default function SignUpPage() {
     { label: "عالي", value: "high" },
   ];
 
-  // Animation references
   const logoAnim = useRef(new Animated.Value(0)).current;
   const contentAnim = useRef(new Animated.Value(50)).current;
   const iconsAnim = useRef(new Animated.Value(0)).current;
@@ -67,47 +64,27 @@ export default function SignUpPage() {
     const animationSequence = Animated.sequence([
       Animated.timing(logoAnim, {
         toValue: 1,
-        duration: 800,
+        duration: 400,
         useNativeDriver: true,
       }),
       Animated.timing(contentAnim, {
         toValue: 0,
-        duration: 600,
+        duration: 400,
         useNativeDriver: true,
       }),
       Animated.timing(iconsAnim, {
         toValue: 1,
-        duration: 700,
+        duration: 400,
         useNativeDriver: true,
       }),
     ]);
 
-    const pulseLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
     animationSequence.start();
-    pulseLoop.start();
-
-    return () => {
-      pulseLoop.stop();
-    };
   }, []);
 
   const handleNext = () => {
-    if (currentStep === 1 && !userType) {
-      Alert.alert("تنبيه", "يرجى اختيار نوع المستخدم");
+    if (currentStep === 2 && !wantsAngelInvestor) {
+      Alert.alert("تنبيه", "يرجى اختيار إجابة للسؤال");
       return;
     }
     if (currentStep < 3) {
@@ -126,8 +103,7 @@ export default function SignUpPage() {
       "birthDate",
     ];
 
-    // Conditionally add angel investor specific fields if userType is 'angel'
-    if (userType === "angel") {
+    if (wantsAngelInvestor === "yes") {
       requiredFields = [
         ...requiredFields,
         "budget",
@@ -140,13 +116,12 @@ export default function SignUpPage() {
     const missingFields = requiredFields.filter(
       (field) => !formData[field as keyof typeof formData]
     );
-    
+
     if (missingFields.length > 0) {
       Alert.alert(
         "تنبيه",
         `يرجى ملء جميع الحقول المطلوبة: ${missingFields
           .map((field) => {
-            // Map field names to Arabic for better user experience
             switch (field) {
               case "nationalId":
                 return "الهوية الوطنية";
@@ -189,86 +164,27 @@ export default function SignUpPage() {
     ]);
   };
 
+  const handleAngelInvestorChoice = (choice: React.SetStateAction<string>) => {
+    setWantsAngelInvestor(choice);
+    if (choice === "no") {
+      Alert.alert("نجح التسجيل", "تم إنشاء الحساب بنجاح", [
+        { text: "موافق", onPress: () => router.push("/Home") },
+      ]);
+    }
+  };
+
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
 
-  const renderUserTypeSelection = () => (
-    <Animated.View
-      style={[styles.stepContent, { transform: [{ translateY: contentAnim }] }]}
-    >
-      <Text style={styles.stepTitle}>اختر نوع الحساب</Text>
-      <Text style={styles.stepSubtitle}>حدد نوع حسابك للمتابعة</Text>
-
-      <TouchableOpacity
-        style={[
-          styles.userTypeCard,
-          userType === "beneficiary" && styles.selectedCard,
-        ]}
-        onPress={() => setUserType("beneficiary")}
-      >
-        <MaterialIcons
-          name="person"
-          size={40}
-          color={userType === "beneficiary" ? "#01a736" : "#001a6e"}
-        />
-        <Text
-          style={[
-            styles.cardTitle,
-            userType === "beneficiary" && styles.selectedCardText,
-          ]}
-        >
-          مستفيد
-        </Text>
-        <Text
-          style={[
-            styles.cardDescription,
-            userType === "beneficiary" && styles.selectedCardText,
-          ]}
-        >
-          للمستخدمين الذين يبحثون عن فرص استثمارية
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[
-          styles.userTypeCard,
-          userType === "angel" && styles.selectedCard,
-        ]}
-        onPress={() => setUserType("angel")}
-      >
-        <FontAwesome5
-          name="user-tie"
-          size={35}
-          color={userType === "angel" ? "#01a736" : "#001a6e"}
-        />
-        <Text
-          style={[
-            styles.cardTitle,
-            userType === "angel" && styles.selectedCardText,
-          ]}
-        >
-          مستثمر ملائكي
-        </Text>
-        <Text
-          style={[
-            styles.cardDescription,
-            userType === "angel" && styles.selectedCardText,
-          ]}
-        >
-          للمستثمرين الذين يقدمون التمويل للمشاريع
-        </Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-
   const renderBasicInfo = () => (
     <Animated.View
       style={[styles.stepContent, { transform: [{ translateY: contentAnim }] }]}
     >
       <Text style={styles.stepTitle}>المعلومات الأساسية</Text>
+      <Text style={styles.stepSubtitle}>أدخل معلوماتك الشخصية</Text>
 
       <View style={styles.inputContainer}>
         <MaterialIcons
@@ -403,6 +319,75 @@ export default function SignUpPage() {
     </Animated.View>
   );
 
+  const renderAngelInvestorQuestion = () => (
+    <Animated.View
+      style={[styles.stepContent, { transform: [{ translateY: contentAnim }] }]}
+    >
+      <Text style={styles.stepTitle}>نوع الحساب</Text>
+      <Text style={styles.stepSubtitle}>هل تريد التسجيل كمستثمر ملائكي؟</Text>
+
+      <TouchableOpacity
+        style={[
+          styles.choiceCard,
+          wantsAngelInvestor === "yes" && styles.selectedCard,
+        ]}
+        onPress={() => handleAngelInvestorChoice("yes")}
+      >
+        <FontAwesome5
+          name="user-tie"
+          size={35}
+          color={wantsAngelInvestor === "yes" ? "#01a736" : "#001a6e"}
+        />
+        <Text
+          style={[
+            styles.cardTitle,
+            wantsAngelInvestor === "yes" && styles.selectedCardText,
+          ]}
+        >
+          نعم
+        </Text>
+        <Text
+          style={[
+            styles.cardDescription,
+            wantsAngelInvestor === "yes" && styles.selectedCardText,
+          ]}
+        >
+          أريد أن أكون مستثمر ملائكي وأقدم التمويل للمشاريع
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.choiceCard,
+          wantsAngelInvestor === "no" && styles.selectedCard,
+        ]}
+        onPress={() => handleAngelInvestorChoice("no")}
+      >
+        <MaterialIcons
+          name="person"
+          size={40}
+          color={wantsAngelInvestor === "no" ? "#01a736" : "#001a6e"}
+        />
+        <Text
+          style={[
+            styles.cardTitle,
+            wantsAngelInvestor === "no" && styles.selectedCardText,
+          ]}
+        >
+          لا
+        </Text>
+        <Text
+          style={[
+            styles.cardDescription,
+            wantsAngelInvestor === "no" && styles.selectedCardText,
+          ]}
+        >
+          أريد حساب عادي للبحث عن فرص الاستثمار
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+
   const renderAngelInvestorPreferences = () => (
     <Animated.View
       style={[styles.stepContent, { transform: [{ translateY: contentAnim }] }]}
@@ -428,12 +413,6 @@ export default function SignUpPage() {
       </View>
 
       <View style={styles.dropdownContainer}>
-        <MaterialIcons
-          name="business"
-          size={20}
-          color="#001a6e"
-          style={styles.inputIcon}
-        />
         <TouchableOpacity
           style={styles.dropdownButton}
           onPress={() => setShowInterestDropdown(!showInterestDropdown)}
@@ -475,12 +454,6 @@ export default function SignUpPage() {
       </View>
 
       <View style={styles.dropdownContainer}>
-        <MaterialIcons
-          name="trending-up"
-          size={20}
-          color="#001a6e"
-          style={styles.inputIcon}
-        />
         <TouchableOpacity
           style={styles.dropdownButton}
           onPress={() => setShowRiskDropdown(!showRiskDropdown)}
@@ -544,17 +517,25 @@ export default function SignUpPage() {
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return renderUserTypeSelection();
-      case 2:
         return renderBasicInfo();
+      case 2:
+        return renderAngelInvestorQuestion();
       case 3:
-        return userType === "angel" ? renderAngelInvestorPreferences() : null;
+        return wantsAngelInvestor === "yes"
+          ? renderAngelInvestorPreferences()
+          : null;
       default:
-        return renderUserTypeSelection();
+        return renderBasicInfo();
     }
   };
 
-  const totalSteps = userType === "angel" ? 3 : 2;
+  const getTotalSteps = () => {
+    return wantsAngelInvestor === "yes" ? 3 : 2;
+  };
+
+  const shouldShowNextButton = () => {
+    return !(currentStep === 2 && wantsAngelInvestor === "no");
+  };
 
   return (
     <>
@@ -564,101 +545,72 @@ export default function SignUpPage() {
         translucent={false}
       />
       <View style={styles.background}>
-        {/* Floating Icons Background */}
-        <Animated.View
-          style={[styles.floatingIcon, styles.icon1, { opacity: iconsAnim }]}
-        >
-          <MaterialIcons
-            name="trending-up"
-            size={30}
-            color="rgba(0, 26, 110, 0.1)"
-          />
-        </Animated.View>
-        <Animated.View
-          style={[styles.floatingIcon, styles.icon2, { opacity: iconsAnim }]}
-        >
-          <FontAwesome5 name="coins" size={25} color="rgba(0, 26, 110, 0.1)" />
-        </Animated.View>
-        <Animated.View
-          style={[styles.floatingIcon, styles.icon3, { opacity: iconsAnim }]}
-        >
-          <MaterialIcons
-            name="analytics"
-            size={28}
-            color="rgba(0, 26, 110, 0.1)"
-          />
-        </Animated.View>
-        <Animated.View
-          style={[styles.floatingIcon, styles.icon4, { opacity: iconsAnim }]}
-        >
-          <FontAwesome5
-            name="chart-line"
-            size={24}
-            color="rgba(0, 26, 110, 0.1)"
-          />
-        </Animated.View>
-
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
-            {/* Logo Section */}
             <Animated.View
               style={[styles.logoContainer, { opacity: logoAnim }]}
             >
               <Image
-                source={require("@/assets/images/Logo.png")}
+                source={require("@/assets/images/NavyFakatk.png")}
                 style={styles.image}
                 resizeMode="contain"
               />
             </Animated.View>
 
-            {/* Progress Indicator */}
             <View style={styles.progressContainer}>
               <Text style={styles.progressText}>
-                الخطوة {currentStep} من {totalSteps}
+                الخطوة {currentStep} من {getTotalSteps()}
               </Text>
               <View style={styles.progressBar}>
                 <View
                   style={[
                     styles.progressFill,
-                    { width: `${(currentStep / totalSteps) * 100}%` },
+                    { width: `${(currentStep / getTotalSteps()) * 100}%` },
                   ]}
                 />
               </View>
             </View>
 
-            {/* Main Content */}
             <View style={styles.contentContainer}>
               {renderCurrentStep()}
 
-              {/* Navigation Buttons */}
-              <View style={styles.navigationContainer}>
-                {currentStep > 1 && (
-                  <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={handleBack}
-                  >
-                    <Ionicons name="arrow-back" size={20} color="#001a6e" />
-                    <Text style={styles.backButtonText}>السابق</Text>
-                  </TouchableOpacity>
-                )}
+              {shouldShowNextButton() && (
+                <View style={styles.navigationContainer}>
+                  {currentStep > 1 && (
+                    <TouchableOpacity
+                      style={styles.backButton}
+                      onPress={handleBack}
+                    >
+                      <Ionicons name="arrow-back" size={20} color="#001a6e" />
+                      <Text style={styles.backButtonText}>السابق</Text>
+                    </TouchableOpacity>
+                  )}
 
-                <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-                  <TouchableOpacity
-                    style={styles.nextButton}
-                    onPress={
-                      currentStep === totalSteps ? handleSubmit : handleNext
-                    }
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.nextButtonText}>
-                      {currentStep === totalSteps ? "إنشاء الحساب" : "التالي"}
-                    </Text>
-                    <Ionicons name="arrow-forward" size={20} color="#fefefe" />
-                  </TouchableOpacity>
-                </Animated.View>
-              </View>
+                  <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                    <TouchableOpacity
+                      style={styles.nextButton}
+                      onPress={
+                        currentStep === getTotalSteps()
+                          ? handleSubmit
+                          : handleNext
+                      }
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.nextButtonText}>
+                        {currentStep === getTotalSteps()
+                          ? "إنشاء الحساب"
+                          : "التالي"}
+                      </Text>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={20}
+                        color="#fefefe"
+                      />
+                    </TouchableOpacity>
+                  </Animated.View>
+                </View>
+              )}
 
-              {/* Sign In Link */}
               <Animated.View
                 style={[styles.signInContainer, { opacity: iconsAnim }]}
               >
@@ -740,7 +692,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 30,
   },
-  userTypeCard: {
+  choiceCard: {
     backgroundColor: "#f8f9fa",
     borderRadius: 16,
     padding: 20,
@@ -827,29 +779,6 @@ const styles = StyleSheet.create({
     color: "#333",
     marginLeft: 10,
     textAlign: "right",
-  },
-  pickerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(0, 26, 110, 0.1)",
-    elevation: 2,
-    shadowColor: "#001a6e",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  pickerWrapper: {
-    flex: 1,
-  },
-  picker: {
-    fontSize: 16,
-    fontFamily: "Almarai-Regular",
-    color: "#333",
   },
   dropdownContainer: {
     marginBottom: 16,
@@ -941,6 +870,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
+
   nextButtonText: {
     fontSize: 16,
     fontFamily: "Almarai-Bold",
@@ -948,6 +878,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   signInContainer: {
+    direction: "rtl",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -962,25 +893,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Almarai-Bold",
     color: "#01a736",
-  },
-  // Floating Icons
-  floatingIcon: {
-    position: "absolute",
-  },
-  icon1: {
-    top: height * 0.1,
-    left: width * 0.1,
-  },
-  icon2: {
-    top: height * 0.2,
-    right: width * 0.15,
-  },
-  icon3: {
-    bottom: height * 0.25,
-    left: width * 0.08,
-  },
-  icon4: {
-    bottom: height * 0.15,
-    right: width * 0.12,
   },
 });
