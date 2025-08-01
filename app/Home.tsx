@@ -82,7 +82,7 @@ export default function Home() {
                     ]}>
                         <MaterialIcons 
                             name="business" 
-                            size={24} 
+                            size={20} 
                             color={activeTab === "opportunities" ? "#ffffff" : "#6b7280"} 
                         />
                     </View>
@@ -106,7 +106,7 @@ export default function Home() {
                     ]}>
                         <MaterialIcons 
                             name="trending-up" 
-                            size={24} 
+                            size={20} 
                             color={activeTab === "investments" ? "#ffffff" : "#6b7280"} 
                         />
                     </View>
@@ -130,7 +130,7 @@ export default function Home() {
                     ]}>
                         <MaterialIcons 
                             name="person" 
-                            size={24} 
+                            size={20} 
                             color={activeTab === "profile" ? "#ffffff" : "#6b7280"} 
                         />
                     </View>
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
         paddingTop: 32,
         alignItems: "center",
         justifyContent: "center",
-        paddingBottom: 100, // Add padding to avoid bottom navigation
+        paddingBottom: 70, // Reduced from 100 to match smaller navbar
     },
     contentText: {
         fontSize: 18,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
         color: "#374151",
         textAlign: "center",
     },
-    // Bottom Navigation
+    // Bottom Navigation - Made Smaller
     bottomNavigation: {
         position: "absolute",
         bottom: 0,
@@ -229,8 +229,8 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: "#f1f5f9",
         flexDirection: "row",
-        paddingTop: 12,
-        paddingBottom: 32,
+        paddingTop: 8, // Reduced from 12
+        paddingBottom: 20, // Reduced from 32
         paddingHorizontal: 24,
         elevation: 20,
         shadowColor: "#000000",
@@ -243,17 +243,17 @@ const styles = StyleSheet.create({
     navItem: {
         alignItems: "center",
         justifyContent: "center",
-        paddingVertical: 8,
-        paddingHorizontal: 20,
+        paddingVertical: 4, // Reduced from 8
+        paddingHorizontal: 12, // Reduced from 20
         flex: 1,
     },
     iconContainer: {
-        width: 40,
-        height: 40,
+        width: 32, // Reduced from 40
+        height: 32, // Reduced from 40
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: 16,
-        marginBottom: 6,
+        borderRadius: 12, // Reduced from 16
+        marginBottom: 4, // Reduced from 6
         backgroundColor: "#f8fafc",
     },
     activeIconContainer: {
@@ -265,11 +265,11 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
     },
     navText: {
-        fontSize: 12,
+        fontSize: 11, // Reduced from 12
         fontFamily: "Almarai-Medium",
         color: "#6b7280",
         textAlign: "center",
-        lineHeight: 16,
+        lineHeight: 14, // Reduced from 16
     },
     activeNavText: {
         color: "#01a736",
