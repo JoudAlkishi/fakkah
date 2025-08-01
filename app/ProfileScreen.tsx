@@ -1,102 +1,183 @@
+// ProfileScreen.tsx - Updated with avatar on the right
 import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
+    Alert,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
+import DigitalWalletScreen from "./DigitalWalletScreen";
+import NotificationsScreen from "./NotificationsScreen";
+import PersonalInfoScreen from "./PersonalInfoScreen";
+import SecurityPrivacyScreen from "./SecurityPrivacyScreen";
+import TermsConditionsScreen from "./TermsConditionsScreen";
 
-export default function ProfileScreen() {
+type ProfileScreenId = "main" | "PersonalInfo" | "SecurityPrivacy" | "Notifications" | "DigitalWallet" | "TermsConditions";
+
+interface ProfileScreenProps {
+    navigation?: any;
+}
+
+export default function ProfileScreen({ navigation: parentNavigation }: ProfileScreenProps) {
+    const [currentScreen, setCurrentScreen] = useState<ProfileScreenId>("main");
+    const [navigationStack, setNavigationStack] = useState<ProfileScreenId[]>(["main"]);
+    const router = useRouter();
+
+    // Internal navigation object for profile screens
+    const profileNavigation = {
+        navigate: (screenName: ProfileScreenId) => {
+            setCurrentScreen(screenName);
+            setNavigationStack(prev => [...prev, screenName]);
+        },
+        goBack: () => {
+            if (navigationStack.length > 1) {
+                const newStack = [...navigationStack];
+                newStack.pop(); // Remove current screen
+                const previousScreen = newStack[newStack.length - 1];
+                setNavigationStack(newStack);
+                setCurrentScreen(previousScreen);
+            }
+        }
+    };
+
     const profileItems = [
         {
             icon: "person",
-            title: "معلومات شخصية",
-            subtitle: "تحديث بياناتك الشخصية",
+            title: "معلوماتي الشخصية",
+            navigationTarget: "PersonalInfo"
         },
         {
             icon: "security",
             title: "الأمان والخصوصية",
-            subtitle: "إعدادات الحماية والخصوصية",
+            navigationTarget: "SecurityPrivacy"
         },
         {
             icon: "notifications",
             title: "الإشعارات",
-            subtitle: "إدارة تفضيلات الإشعارات",
+            navigationTarget: "Notifications"
         },
         {
             icon: "account-balance-wallet",
-            title: "المحفظة الرقمية",
-            subtitle: "إدارة وسائل الدفع",
+            title: "المحفظة الإستثمارية",
+            navigationTarget: "DigitalWallet"
         },
         {
-            icon: "help",
-            title: "المساعدة والدعم",
-            subtitle: "الحصول على المساعدة",
-        },
-        {
-            icon: "settings",
-            title: "الإعدادات",
-            subtitle: "تخصيص تجربتك",
+            icon: "description",
+            title: "الشروط والأحكام",
+            navigationTarget: "TermsConditions"
         },
     ];
 
-    return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.placeholder} />
-                <Text style={styles.headerTitle}>حسابي الشخصي</Text>
-                <View style={styles.placeholder} />
-            </View>
+    const handleMenuItemPress = (navigationTarget: string) => {
+        profileNavigation.navigate(navigationTarget as ProfileScreenId);
+    };
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Profile Info Card */}
-                <View style={styles.profileCard}>
-                    <View style={styles.avatarContainer}>
-                        <MaterialIcons name="person" size={40} color="#ffffff" />
-                    </View>
-                    <View style={styles.profileInfo}>
-                        <Text style={styles.userName}>عبدالكريم الشهري</Text>
-                        <Text style={styles.userEmail}>abdulkareem@example.com</Text>
-                        <Text style={styles.userPhone}>+966 50 123 4567</Text>
-                    </View>
-                    <TouchableOpacity style={styles.editButton}>
-                        <MaterialIcons name="edit" size={20} color="#01a736" />
-                    </TouchableOpacity>
-                </View>
+    const handleLogout = () => {
+        Alert.alert(
+            "تسجيل الخروج",
+            "هل أنت متأكد من أنك تريد تسجيل الخروج؟",
+            [
+                {
+                    text: "إلغاء",
+                    style: "cancel",
+                },
+                {
+                    text: "تسجيل الخروج",
+                    style: "destructive",
+                    onPress: () => {
+                        console.log("User logged out");
+                        router.replace("/getStarted");
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
 
-                {/* Profile Menu Items */}
-                <View style={styles.menuContainer}>
-                    {profileItems.map((item, index) => (
-                        <TouchableOpacity key={index} style={styles.menuItem}>
-                            <View style={styles.menuItemLeft}>
-                                <View style={styles.menuIconContainer}>
-                                    <MaterialIcons 
-                                        name={item.icon as any} 
-                                        size={24} 
-                                        color="#01a736" 
-                                    />
+    // Render different screens based on currentScreen
+    const renderScreen = () => {
+        switch (currentScreen) {
+            case "PersonalInfo":
+                return <PersonalInfoScreen navigation={profileNavigation} />;
+            
+            case "SecurityPrivacy":
+                return <SecurityPrivacyScreen navigation={profileNavigation} />;
+            
+            case "Notifications":
+                return <NotificationsScreen navigation={profileNavigation} />;
+            
+            case "DigitalWallet":
+                return <DigitalWalletScreen navigation={profileNavigation} />;
+            
+            case "TermsConditions":
+                return <TermsConditionsScreen navigation={profileNavigation} />;
+            
+            case "main":
+            default:
+                return (
+                    <View style={styles.container}>
+                        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                            {/* Profile Info Card */}
+                            <View style={styles.profileCard}>
+                                <View style={styles.avatarContainer}>
+                                    <MaterialIcons name="person" size={40} color="#ffffff" />
                                 </View>
-                                <View style={styles.menuTextContainer}>
-                                    <Text style={styles.menuTitle}>{item.title}</Text>
-                                    <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                                <View style={styles.profileInfo}>
+                                    <Text style={styles.userName}>عبدالكريم الشهري</Text>
+                                    <Text style={styles.userEmail}>abdulkareem@gmail.com</Text>
                                 </View>
                             </View>
-                            <MaterialIcons name="chevron-left" size={24} color="#6b7280" />
-                        </TouchableOpacity>
-                    ))}
-                </View>
 
-                {/* Logout Button */}
-                <TouchableOpacity style={styles.logoutButton}>
-                    <MaterialIcons name="logout" size={24} color="#ff4757" />
-                    <Text style={styles.logoutText}>تسجيل الخروج</Text>
-                </TouchableOpacity>
-            </ScrollView>
-        </View>
-    );
+                            {/* Profile Menu Items */}
+                            <View style={styles.menuContainer}>
+                                {profileItems.map((item, index) => (
+                                    <TouchableOpacity 
+                                        key={index} 
+                                        style={[
+                                            styles.menuItem,
+                                            index === profileItems.length - 1 && styles.lastMenuItem
+                                        ]}
+                                        onPress={() => handleMenuItemPress(item.navigationTarget)}
+                                    >
+                                        {/* Arrow on the left */}
+                                        <MaterialIcons name="chevron-left" size={24} color="#6b7280" />
+                                        
+                                        {/* Text content on the right */}
+                                        <View style={styles.menuTextContainer}>
+                                            <Text style={styles.menuTitle}>{item.title}</Text>
+                                        </View>
+                                        
+                                        {/* Icon on the right */}
+                                        <View style={styles.menuIconContainer}>
+                                            <MaterialIcons 
+                                                name={item.icon as any} 
+                                                size={24} 
+                                                color="#01a736" 
+                                            />
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            {/* Logout Button */}
+                            <TouchableOpacity 
+                                style={styles.logoutButton}
+                                onPress={handleLogout}
+                            >
+                                <MaterialIcons name="logout" size={24} color="#ff4757" />
+                                <Text style={styles.logoutText}>تسجيل الخروج</Text>
+                            </TouchableOpacity>
+                        </ScrollView>
+                    </View>
+                );
+        }
+    };
+
+    return renderScreen();
 }
 
 const styles = StyleSheet.create({
@@ -121,20 +202,31 @@ const styles = StyleSheet.create({
         color: "#001a6e",
         textAlign: "center",
     },
+    backButton: {
+        width: 40,
+        height: 40,
+        alignItems: "center",
+        justifyContent: "center",
+    },
     placeholder: {
         width: 40,
     },
     content: {
         flex: 1,
         paddingHorizontal: 24,
-        paddingBottom: 100, // Add padding to avoid bottom navigation
+    },
+    contentText: {
+        fontSize: 18,
+        fontFamily: "Almarai-Medium",
+        color: "#374151",
+        textAlign: "center",
     },
     profileCard: {
         backgroundColor: "#ffffff",
         borderRadius: 16,
         padding: 24,
         marginTop: 24,
-        flexDirection: "row",
+        flexDirection: "row-reverse", // Changed from "row" to "row-reverse"
         alignItems: "center",
         elevation: 2,
         shadowColor: "#000000",
@@ -149,7 +241,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#01a736",
         alignItems: "center",
         justifyContent: "center",
-        marginRight: 16,
+        marginLeft: 16, // Changed from marginRight to marginLeft
     },
     profileInfo: {
         flex: 1,
@@ -161,6 +253,7 @@ const styles = StyleSheet.create({
         color: "#001a6e",
         marginBottom: 4,
         textAlign: "right",
+        lineHeight: 30
     },
     userEmail: {
         fontSize: 14,
@@ -169,12 +262,7 @@ const styles = StyleSheet.create({
         marginBottom: 2,
         textAlign: "right",
     },
-    userPhone: {
-        fontSize: 14,
-        fontFamily: "Almarai-Regular",
-        color: "#6b7280",
-        textAlign: "right",
-    },
+
     editButton: {
         width: 36,
         height: 36,
@@ -203,6 +291,9 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: "#f1f5f9",
     },
+    lastMenuItem: {
+        borderBottomWidth: 0,
+    },
     menuItemLeft: {
         flexDirection: "row",
         alignItems: "center",
@@ -215,7 +306,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         borderRadius: 20,
         backgroundColor: "#f0fdf4",
-        marginRight: 16,
     },
     menuTextContainer: {
         flex: 1,
@@ -225,14 +315,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: "Almarai-Medium",
         color: "#001a6e",
-        marginBottom: 2,
         textAlign: "right",
-    },
-    menuSubtitle: {
-        fontSize: 13,
-        fontFamily: "Almarai-Regular",
-        color: "#6b7280",
-        textAlign: "right",
+        paddingRight: 10
     },
     logoutButton: {
         backgroundColor: "#ffffff",
