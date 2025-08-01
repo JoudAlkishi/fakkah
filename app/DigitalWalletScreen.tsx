@@ -2,6 +2,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
     Alert,
+    Image,
     ScrollView,
     StyleSheet,
     Text,
@@ -13,6 +14,22 @@ export default function DigitalWalletScreen({ navigation }: any) {
     const [collectedChange] = useState(30.50);
     const [investedAmount] = useState(478.25);
     const [totalReturns] = useState(127.45);
+    
+    // Add your Riyal image component
+    const RiyalIcon = ({ size = 16, color, style = {} }: { size?: number; color: string; style?: any }) => (
+        <Image
+            source={require('@/assets/images/riyal.png')} 
+            style={[
+                {
+                    width: size,
+                    height: size,
+                    resizeMode: 'contain',
+                    tintColor: color, // This will change the image color to match the text
+                },
+                style
+            ]}
+        />
+    );
     
     const paymentMethods = [
         {
@@ -76,8 +93,6 @@ export default function DigitalWalletScreen({ navigation }: any) {
         },
     ];
 
-
-
     const handleWithdraw = () => {
         Alert.alert("سحب الأرباح", "اختر المبلغ المراد سحبه من الأرباح");
     };
@@ -111,8 +126,6 @@ export default function DigitalWalletScreen({ navigation }: any) {
                 {
                     text: confirmText,
                     onPress: () => {
-                        // Here you would update the card's roundUpEnabled status
-                        // For now, just show confirmation
                         Alert.alert("تم التحديث", successMessage);
                     }
                 }
@@ -169,22 +182,28 @@ export default function DigitalWalletScreen({ navigation }: any) {
                     <View style={styles.summaryHeader}>
                         <Text style={styles.summaryTitle}>الفكة المتجمعة</Text>
                     </View>
-                    <Text style={styles.summaryAmount}>{collectedChange.toFixed(2)} ر.س</Text>
-                    
-               
-                     
+                    <View style={styles.amountWithIcon}>
+                        <RiyalIcon size={28} color="#ffffff" />
+                        <Text style={styles.summaryAmount}>{collectedChange.toFixed(2)}</Text>
+                    </View>
                 </View>
 
                 {/* Investment Overview */}
                 <View style={styles.investmentOverview}>
                     <View style={styles.investmentItem}>
                         <Text style={styles.investmentLabel}>المبلغ المستثمر</Text>
-                        <Text style={styles.investmentValue}>{investedAmount.toFixed(2)} ر.س</Text>
+                        <View style={styles.amountWithIcon}>
+                            <RiyalIcon size={16} color="#001a6e" />
+                            <Text style={styles.investmentValue}>{investedAmount.toFixed(2)}</Text>
+                        </View>
                     </View>
                     <View style={styles.investmentDivider} />
                     <View style={styles.investmentItem}>
                         <Text style={styles.investmentLabel}>إجمالي الأرباح</Text>
-                        <Text style={[styles.investmentValue, styles.profitValue]}>+{totalReturns.toFixed(2)} ر.س</Text>
+                        <View style={styles.amountWithIcon}>
+                            <RiyalIcon size={16} color="#10b981" />
+                            <Text style={[styles.investmentValue, styles.profitValue]}>+{totalReturns.toFixed(2)}</Text>
+                        </View>
                     </View>
                 </View>
 
@@ -263,9 +282,12 @@ export default function DigitalWalletScreen({ navigation }: any) {
                     {recentRoundUps.map((roundUp) => (
                         <View key={roundUp.id} style={styles.roundUpItem}>
                             <View style={styles.roundUpRight}>
-                                <Text style={styles.roundUpAmount}>
-                                    +{roundUp.roundUpAmount.toFixed(2)} ر.س
-                                </Text>
+                                <View style={styles.amountWithIcon}>
+                                    <RiyalIcon size={12} color="#01a736" />
+                                    <Text style={styles.roundUpAmount}>
+                                        +{roundUp.roundUpAmount.toFixed(2)}
+                                    </Text>
+                                </View>
                                 <Text style={[
                                     styles.roundUpStatus,
                                     roundUp.status === "invested" ? styles.investedStatus : styles.collectedStatus
@@ -276,9 +298,12 @@ export default function DigitalWalletScreen({ navigation }: any) {
                             <View style={styles.roundUpLeft}>
                                 <View style={styles.roundUpDetails}>
                                     <Text style={styles.merchantName}>{roundUp.merchant}</Text>
-                                    <Text style={styles.purchaseInfo}>
-                                        مشتريات: {roundUp.purchaseAmount.toFixed(2)} ر.س
-                                    </Text>
+                                    <View style={styles.purchaseInfoContainer}>
+                                        <RiyalIcon size={10} color="#6b7280" />
+                                        <Text style={styles.purchaseInfo}>
+                                            مشتريات: {roundUp.purchaseAmount.toFixed(2)}
+                                        </Text>
+                                    </View>
                                     <Text style={styles.roundUpDate}>{roundUp.date}</Text>
                                 </View>
                                 <View style={[
@@ -395,31 +420,17 @@ const styles = StyleSheet.create({
         color: "#ffffff",
         marginRight: 8,
     },
+    amountWithIcon: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6, // Add consistent spacing between icon and text
+    },
     summaryAmount: {
         fontSize: 36,
         fontFamily: "Almarai-Bold",
         color: "#ffffff",
         marginBottom: 4,
-    },
-    summarySubtext: {
-        fontSize: 14,
-        fontFamily: "Almarai-Regular",
-        color: "rgba(255, 255, 255, 0.8)",
-        marginBottom: 20,
-    },
-    investButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#ffffff",
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 12,
-    },
-    investButtonText: {
-        fontSize: 16,
-        fontFamily: "Almarai-Bold",
-        color: "#01a736",
-        marginRight: 8,
     },
     investmentOverview: {
         backgroundColor: "#ffffff",
@@ -614,11 +625,17 @@ const styles = StyleSheet.create({
         marginBottom: 2,
         textAlign: "right",
     },
+    purchaseInfoContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        marginBottom: 2,
+        gap: 4, // Add consistent spacing between icon and text
+    },
     purchaseInfo: {
         fontSize: 12,
         fontFamily: "Almarai-Regular",
         color: "#6b7280",
-        marginBottom: 2,
         textAlign: "right",
     },
     roundUpDate: {
