@@ -1,4 +1,5 @@
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -6,6 +7,7 @@ import {
   Alert,
   Animated,
   Image,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -23,6 +25,10 @@ export default function SignUpPage() {
   const [idVerificationStatus, setIdVerificationStatus] = useState(""); // "verified", "failed", ""
   const [showCardDropdown, setShowCardDropdown] = useState(false);
   const [cardLinked, setCardLinked] = useState(false);
+  
+  // Date picker states
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [formData, setFormData] = useState({
     nationalId: "",
@@ -90,6 +96,47 @@ export default function SignUpPage() {
 
     animationSequence.start();
   }, []);
+
+  // Format date to DD/MM/YYYY
+  const formatDate = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Handle date picker change
+  const onDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    if (date) {
+      setSelectedDate(date);
+      const formattedDate = formatDate(date);
+      setFormData({ ...formData, birthDate: formattedDate });
+      setIdVerificationStatus(""); // Reset verification status
+    }
+  };
+
+  // Show date picker
+  const showDatePickerModal = () => {
+    setShowDatePicker(true);
+  };
+
+  // Calculate maximum date (18 years ago from today)
+  const getMaxDate = () => {
+    const today = new Date();
+    const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    return maxDate;
+  };
+
+  // Calculate minimum date (100 years ago from today)
+  const getMinDate = () => {
+    const today = new Date();
+    const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+    return minDate;
+  };
 
   // Simulate National ID verification using SAMA Yaqeen service
   const verifyNationalId = async () => {
@@ -346,35 +393,44 @@ export default function SignUpPage() {
         )}
       </View>
 
-      {/* Birth Date Input */}
-      <View style={styles.inputContainer}>
+      {/* Birth Date Input with Date Picker */}
+      <TouchableOpacity style={styles.inputContainer} onPress={showDatePickerModal}>
         <MaterialIcons
           name="cake"
           size={20}
           color="#001a6e"
           style={styles.inputIcon}
         />
-        <TextInput
-          style={styles.textInput}
-          placeholder="تاريخ الميلاد (يوم/شهر/سنة)"
-          placeholderTextColor="#999"
-          value={formData.birthDate}
-          onChangeText={(text) => {
-            setFormData({ ...formData, birthDate: text });
-            setIdVerificationStatus(""); // Reset verification status
-          }}
-        />
+        <View style={styles.dateInputContainer}>
+          <Text style={[
+            styles.dateText, 
+            !formData.birthDate && styles.dateTextPlaceholder
+          ]}>
+            {formData.birthDate || "تاريخ الميلاد (يوم/شهر/سنة)"}
+          </Text>
+        </View>
         {idVerificationStatus === "verified" && (
           <MaterialIcons name="check-circle" size={20} color="#01a736" />
         )}
-      </View>
+      </TouchableOpacity>
 
-     
+      {/* Date Picker Modal */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onDateChange}
+          maximumDate={getMaxDate()}
+          minimumDate={getMinDate()}
+          locale="ar"
+        />
+      )}
+
       <Text style={styles.yaqeenInfo}>
         يتم التحقق من بياناتك بشكل آمن من خلال خدمة يقين التابعة لمركز المعلومات
         الوطني، لضمان حماية حسابك والامتثال للوائح السعودية
       </Text>
-
 
       <TouchableOpacity
         style={[
@@ -404,7 +460,6 @@ export default function SignUpPage() {
       </TouchableOpacity>
 
       {renderIdVerificationStatus()}
-
 
       {idVerificationStatus === "verified" && (
         <>
@@ -497,7 +552,6 @@ export default function SignUpPage() {
             />
           </View>
 
-         
           <View style={styles.walletContainer}>
             <Text style={styles.walletLabel}>طريقة الدفع</Text>
             <TouchableOpacity
@@ -527,10 +581,8 @@ export default function SignUpPage() {
               )}
             </TouchableOpacity>
 
-          
             {showCardDropdown && !cardLinked && (
               <View style={styles.cardDropdown}>
-            
                 <View style={styles.cardLogos}>
                   <Text style={styles.acceptedCardsText}>
                     البطاقات المقبولة:
@@ -1086,6 +1138,20 @@ const styles = StyleSheet.create({
     color: "#333",
     paddingVertical: 15,
     textAlign: "right",
+  },
+  // Date picker styles
+  dateInputContainer: {
+    flex: 1,
+    paddingVertical: 15,
+  },
+  dateText: {
+    fontSize: 16,
+    fontFamily: "Almarai-Regular",
+    color: "#333",
+    textAlign: "right",
+  },
+  dateTextPlaceholder: {
+    color: "#999",
   },
   // Yaqeen Service Info
   yaqeenInfo: {
