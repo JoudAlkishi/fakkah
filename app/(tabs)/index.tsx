@@ -50,7 +50,7 @@ export default function WelcomePage() {
       <View style={styles.container}>
         <Animated.View
           style={[
-            styles.logoContainer,
+            styles.logoContainer, 
             {
               opacity: logoAnim,
               transform: [{ scale: logoScaleAnim }],

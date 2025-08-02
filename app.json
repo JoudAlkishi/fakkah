@@ -8,7 +8,7 @@
     "assetBundlePatterns": ["**/*"],
     "scheme": "fakkah",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": true, 
     "ios": {
       "supportsTablet": true
     },

@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 16,
         fontFamily: "Almarai-Bold",
-        color: "#001a6e",
+        color: "#001a6e", 
         textAlign: "center",
         flex: 1,
         marginHorizontal: 10,

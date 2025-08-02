@@ -671,7 +671,7 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         backgroundColor: "#f8fafc",
         borderRadius: 12,
-        marginBottom: 12,
+        marginBottom: 12, 
     },
     quickActionText: {
         fontSize: 12,

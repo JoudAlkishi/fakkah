@@ -132,7 +132,7 @@ export default function ProfileScreen({ navigation: parentNavigation }: ProfileS
                                 </View>
                             </View>
 
-                            {/* Profile Menu Items */}
+                            {/* Profile Menu Items */} 
                             <View style={styles.menuContainer}>
                                 {profileItems.map((item, index) => (
                                     <TouchableOpacity 

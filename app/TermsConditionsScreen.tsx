@@ -1,11 +1,11 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 interface TermsConditionsScreenProps {
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
         textAlign: "right",
         marginBottom: 8,
     },
-    lastUpdated: {
+    lastUpdated: { 
         alignItems: "center",
         paddingVertical: 24,
         marginTop: 16,

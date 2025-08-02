@@ -10,10 +10,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
-// For commit
+
 export default function SignInPage() {
   const router = useRouter();
 
@@ -25,7 +25,6 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Only logo animation
     Animated.timing(logoAnim, {
       toValue: 1,
       duration: 800,
@@ -49,7 +48,6 @@ export default function SignInPage() {
         alert("يرجى إدخال رمز التحقق");
         return;
       }
-      // Navigate to Home
       router.push("/Home");
     }
   };
@@ -153,9 +151,7 @@ export default function SignInPage() {
             </View>
 
             <View style={styles.infoContainer}>
-              <Text style={styles.infoText}>
-                انضم إلى أكثر من 10,000 مستثمر
-              </Text>
+             
             </View>
           </View>
         </ScrollView>
@@ -197,7 +193,8 @@ const styles = StyleSheet.create({
     textAlign: "right",
     marginBottom: 4,
     marginLeft: 130,
-    bottom: 50,
+    bottom: 43,
+    lineHeight: 50,
   },
   subtitle: {
     fontSize: 16,
@@ -205,6 +202,7 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "right",
     bottom: 50,
+    lineHeight: 20,
   },
   formContainer: {
     width: "100%",
@@ -234,7 +232,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 20,
-    marginBottom: 50,
+    marginBottom: 20,
     width: "100%",
     alignItems: "center",
     bottom: 60,
@@ -267,27 +265,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     direction: "rtl",
     marginTop: 20,
-    marginBottom: 15,
     top: 75,
   },
   signUpText: {
     fontSize: 14,
     fontFamily: "Almarai-Regular",
     color: "#666",
+    top: 15,
   },
   signUpLink: {
     fontSize: 14,
     fontFamily: "Almarai-Bold",
     color: "#01a736",
+    lineHeight: 50,
+    top: 15,
   },
   infoContainer: {
     alignItems: "center",
-    top: 70,
+    top: 77,
   },
   infoText: {
     color: "#999",
     fontSize: 14,
     fontFamily: "Almarai-Regular",
     textAlign: "center",
+    lineHeight: 20,
   },
 });

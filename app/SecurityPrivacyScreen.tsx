@@ -317,4 +317,4 @@ const styles = StyleSheet.create({
     deleteButtonText: {
         color: "#ff4757",
     },
-});
+}); 

@@ -135,9 +135,7 @@ export default function GetStarted() {
             <Animated.View
               style={[styles.infoContainer, { opacity: iconsAnim }]}
             >
-              <Text style={styles.infoText}>
-                انضم إلى أكثر من 10,000 مستثمر واكتشف فرص الاستثمار الذكية
-              </Text>
+           
             </Animated.View>
           </View>
         </ScrollView>

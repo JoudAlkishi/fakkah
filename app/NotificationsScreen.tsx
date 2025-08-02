@@ -85,7 +85,7 @@ export default function NotificationsScreen({ navigation }: any) {
                         iconColor="#3b82f6"
                     />
                 </View>
-
+ 
 
                 <View style={styles.sectionContainer}>
                     <Text style={styles.sectionTitle}>الصوت والاهتزاز</Text>
