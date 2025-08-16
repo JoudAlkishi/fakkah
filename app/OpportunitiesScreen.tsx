@@ -2,7 +2,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    FlatList,
     Image,
     Modal,
     ScrollView,
@@ -18,17 +17,23 @@ interface Opportunity {
     description: string;
     location: string;
     category: string;
-    communitySupport: number; // percentage
-    opportunityStatus: "متاحة" | "مكتملة" | "قريباً" | "مغلقة";
-    requiredInvestment: number; // in SAR
-    expectedROI: number; // percentage
+    communitySupport: number;
+    opportunityStatus: "مناسبة" | "تم الاستثمار" ;
+    requiredInvestment: number;
+    expectedROI: number;
     startDate: string;
     endDate: string;
     businessModel: string;
     riskLevel: "منخفض" | "متوسط" | "عالي" | "مرتفع";
-    irr: number; // Internal Rate of Return percentage
-    npv: number; // Net Present Value in SAR
-    cumulativeProfitRate: number; // percentage
+    irr: number;
+    npv: number;
+    cumulativeProfitRate: number;
+    isInvested?: boolean;
+    investedAmount?: number;
+    investmentDate?: string;
+    currentValue?: number;
+    actualROI?: number;
+    portfolioPercentage?: number;
 }
 
 export default function OpportunitiesScreen() {
@@ -60,7 +65,34 @@ export default function OpportunitiesScreen() {
         "خدمات نقل وتوصيل",
     ];
 
-    const opportunities: Opportunity[] = [
+    // Invested opportunity
+    const investedOpportunity: Opportunity = {
+        id: "inv1",
+        name: "لمسة تراث",
+        description: "ورشة لإنتاج الحرف اليدوية والمنتجات التراثية العسيرية مع التركيز على الحرف النسائية التقليدية والتسويق الإلكتروني",
+        location: "رجال ألمع",
+        category: "حرف يدوية وتراثية",
+        communitySupport: 95,
+        opportunityStatus: "تم الاستثمار",
+        requiredInvestment: 60000,
+        expectedROI: 30,
+        startDate: "2024-03-15",
+        endDate: "2025-03-15",
+        businessModel: "C2C",
+        riskLevel: "منخفض",
+        irr: 35.2,
+        npv: 42000,
+        cumulativeProfitRate: 89,
+        isInvested: true,
+        investedAmount: 30000,
+        investmentDate: "2024-03-20",
+        currentValue: 36500,
+        actualROI: 21.7,
+        portfolioPercentage: 100,
+    };
+
+    // Available opportunities with suitability scores
+    const availableOpportunities: Opportunity[] = [
         {
             id: "1",
             name: "قطرات الجنوب",
@@ -68,7 +100,7 @@ export default function OpportunitiesScreen() {
             location: "أبها",
             category: "مقاهي ومشروبات",
             communitySupport: 85,
-            opportunityStatus: "متاحة",
+            opportunityStatus: "مناسبة",
             requiredInvestment: 150000,
             expectedROI: 18,
             startDate: "2025-03-01",
@@ -77,7 +109,7 @@ export default function OpportunitiesScreen() {
             riskLevel: "متوسط",
             irr: 22.5,
             npv: 45000,
-            cumulativeProfitRate: 65
+            cumulativeProfitRate: 65,
         },
         {
             id: "2",
@@ -86,7 +118,7 @@ export default function OpportunitiesScreen() {
             location: "النماص",
             category: "منتجات عسلية",
             communitySupport: 92,
-            opportunityStatus: "متاحة",
+            opportunityStatus: "مناسبة",
             requiredInvestment: 80000,
             expectedROI: 25,
             startDate: "2025-02-15",
@@ -95,7 +127,7 @@ export default function OpportunitiesScreen() {
             riskLevel: "منخفض",
             irr: 28.3,
             npv: 65000,
-            cumulativeProfitRate: 78
+            cumulativeProfitRate: 78,
         },
         {
             id: "3",
@@ -104,7 +136,7 @@ export default function OpportunitiesScreen() {
             location: "خميس مشيط",
             category: "مطاعم وأغذية",
             communitySupport: 78,
-            opportunityStatus: "متاحة",
+            opportunityStatus: "مناسبة",
             requiredInvestment: 200000,
             expectedROI: 20,
             startDate: "2025-04-01",
@@ -113,7 +145,7 @@ export default function OpportunitiesScreen() {
             riskLevel: "متوسط",
             irr: 24.1,
             npv: 85000,
-            cumulativeProfitRate: 72
+            cumulativeProfitRate: 72,
         },
         {
             id: "4",
@@ -122,7 +154,7 @@ export default function OpportunitiesScreen() {
             location: "طريب",
             category: "زراعة ومنتجات طبيعية",
             communitySupport: 88,
-            opportunityStatus: "قريباً",
+            opportunityStatus: "مناسبة",
             requiredInvestment: 120000,
             expectedROI: 22,
             startDate: "2025-05-01",
@@ -131,34 +163,16 @@ export default function OpportunitiesScreen() {
             riskLevel: "متوسط",
             irr: 26.7,
             npv: 72000,
-            cumulativeProfitRate: 81
+            cumulativeProfitRate: 81,
         },
         {
             id: "5",
-            name: "لمسة تراث",
-            description: "ورشة لإنتاج الحرف اليدوية والمنتجات التراثية العسيرية مع التركيز على الحرف النسائية التقليدية والتسويق الإلكتروني",
-            location: "رجال ألمع",
-            category: "حرف يدوية وتراثية",
-            communitySupport: 95,
-            opportunityStatus: "متاحة",
-            requiredInvestment: 60000,
-            expectedROI: 30,
-            startDate: "2025-03-15",
-            endDate: "2026-03-15",
-            businessModel: "C2C",
-            riskLevel: "منخفض",
-            irr: 35.2,
-            npv: 42000,
-            cumulativeProfitRate: 89
-        },
-        {
-            id: "6",
             name: "رحلات الجنوب",
             description: "شركة سياحية متخصصة في تنظيم الرحلات السياحية في منطقة عسير مع التركيز على السياحة البيئية والتراثية",
             location: "تثليث",
             category: "سياحة وضيافة",
             communitySupport: 73,
-            opportunityStatus: "متاحة",
+            opportunityStatus: "مناسبة",
             requiredInvestment: 180000,
             expectedROI: 16,
             startDate: "2025-06-01",
@@ -167,16 +181,16 @@ export default function OpportunitiesScreen() {
             riskLevel: "عالي",
             irr: 19.8,
             npv: 38000,
-            cumulativeProfitRate: 58
+            cumulativeProfitRate: 58,
         },
         {
-            id: "7",
+            id: "6",
             name: "نقاء الجنوب",
             description: "مصنع لإنتاج المواد الغذائية المحلية والمحفوظات التراثية مع التركيز على التعبئة والتغليف الحديث للتصدير",
             location: "محايل عسير",
             category: "صناعات غذائية محلية",
             communitySupport: 81,
-            opportunityStatus: "مكتملة",
+            opportunityStatus: "مناسبة",
             requiredInvestment: 250000,
             expectedROI: 24,
             startDate: "2024-12-01",
@@ -185,16 +199,16 @@ export default function OpportunitiesScreen() {
             riskLevel: "متوسط",
             irr: 27.9,
             npv: 95000,
-            cumulativeProfitRate: 76
+            cumulativeProfitRate: 76,
         },
         {
-            id: "8",
+            id: "7",
             name: "أجرة النماص",
             description: "خدمة نقل وتوصيل محلية في النماص والمناطق المجاورة مع التركيز على النقل السياحي وتوصيل البضائع للمتاجر",
             location: "النماص",
             category: "خدمات نقل وتوصيل",
             communitySupport: 69,
-            opportunityStatus: "متاحة",
+            opportunityStatus: "مناسبة",
             requiredInvestment: 90000,
             expectedROI: 15,
             startDate: "2025-02-01",
@@ -203,17 +217,20 @@ export default function OpportunitiesScreen() {
             riskLevel: "متوسط",
             irr: 18.5,
             npv: 28000,
-            cumulativeProfitRate: 52
+            cumulativeProfitRate: 52,
         }
     ];
 
-    const filteredOpportunities = selectedFilter === "الكل" 
-        ? opportunities 
-        : opportunities.filter(opp => opp.category === selectedFilter);
+    const filteredAvailableOpportunities = selectedFilter === "الكل" 
+        ? availableOpportunities 
+        : availableOpportunities.filter(opp => opp.category === selectedFilter);
+
+
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case "متاحة": return "#16a34a";
+            case "مناسبة": return "#3b82f6"; // Blue for suitable
+            case "تم الاستثمار": return "#16a34a"; // Green for invested
             case "مكتملة": return "#64748b";
             case "قريباً": return "#f59e0b";
             case "مغلقة": return "#dc2626";
@@ -231,6 +248,18 @@ export default function OpportunitiesScreen() {
         }
     };
 
+    const getSuitabilityColor = (score: number) => {
+        if (score >= 80) return "#16a34a"; // Green - Highly suitable
+        if (score >= 60) return "#f59e0b"; // Orange - Moderately suitable
+        return "#64748b"; // Gray - Less suitable
+    };
+
+    const getSuitabilityText = (score: number) => {
+        if (score >= 80) return "مناسب جداً";
+        if (score >= 60) return "مناسب";
+        return "أقل مناسبة";
+    };
+
     const getCategoryImage = (category: string) => {
         return categoryImages[category];
     };
@@ -246,14 +275,13 @@ export default function OpportunitiesScreen() {
         });
     };
 
-    const renderOpportunity = ({ item }: { item: Opportunity }) => {
+    const renderInvestedOpportunity = (item: Opportunity) => {
         return (
             <TouchableOpacity 
                 style={styles.opportunityCard}
                 onPress={() => handleOpportunityPress(item)}
                 activeOpacity={0.8}
             >
-                {/* Category Image with enhanced overlay */}
                 <View style={styles.imageContainer}>
                     <Image 
                         source={getCategoryImage(item.category)}
@@ -262,12 +290,12 @@ export default function OpportunitiesScreen() {
                     />
                     <View style={styles.imageOverlay}>
                         <View style={styles.cardHeader}>
-                            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.opportunityStatus) }]}>
-                                <Text style={styles.statusText}>{item.opportunityStatus}</Text>
+                            <View style={styles.investedBadge}>
+                                <MaterialIcons name="account-balance-wallet" size={16} color="#ffffff" />
+                                <Text style={styles.investedBadgeText}>تم الاستثمار</Text>
                             </View>
                         </View>
                         
-                        {/* Title at bottom of image */}
                         <View style={styles.titleSection}>
                             <Text style={styles.opportunityTitle}>{item.name}</Text>
                             <View style={styles.locationContainer}>
@@ -278,9 +306,7 @@ export default function OpportunitiesScreen() {
                     </View>
                 </View>
 
-                {/* Main Content */}
                 <View style={styles.cardContent}>
-                    {/* Key Metrics Row with improved styling */}
                     <View style={styles.metricsContainer}>
                         <View style={styles.primaryMetric}>
                             <Text style={styles.primaryMetricValue}>{item.expectedROI}%</Text>
@@ -301,7 +327,70 @@ export default function OpportunitiesScreen() {
                         </View>
                     </View>
 
-                    {/* Action Button */}
+                    <TouchableOpacity 
+                        style={styles.actionButton}
+                        onPress={() => handleOpportunityPress(item)}
+                    >
+                        <Text style={styles.actionButtonText}>عرض تفاصيل الاستثمار</Text>
+                        <MaterialIcons name="trending-up" size={18} color="#ffffff" />
+                    </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+    const renderAvailableOpportunity = ({ item }: { item: Opportunity }) => {
+        return (
+            <TouchableOpacity 
+                style={styles.opportunityCard}
+                onPress={() => handleOpportunityPress(item)}
+                activeOpacity={0.8}
+            >
+                <View style={styles.imageContainer}>
+                    <Image 
+                        source={getCategoryImage(item.category)}
+                        style={styles.categoryImage}
+                        resizeMode="cover"
+                    />
+                    <View style={styles.imageOverlay}>
+                        <View style={styles.cardHeader}>
+                            <View style={styles.suitableBadge}>
+                                <MaterialIcons name="verified" size={16} color="#ffffff" />
+                                <Text style={styles.suitableBadgeText}>مناسبة</Text>
+                            </View>
+                        </View>
+                        
+                        <View style={styles.titleSection}>
+                            <Text style={styles.opportunityTitle}>{item.name}</Text>
+                            <View style={styles.locationContainer}>
+                                <MaterialIcons name="place" size={14} color="#ffffff" />
+                                <Text style={styles.locationText}>{item.location}</Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                <View style={styles.cardContent}>
+                    <View style={styles.metricsContainer}>
+                        <View style={styles.primaryMetric}>
+                            <Text style={styles.primaryMetricValue}>{item.expectedROI}%</Text>
+                            <Text style={styles.primaryMetricLabel}>العائد المتوقع</Text>
+                        </View>
+                        
+                        <View style={styles.secondaryMetrics}>
+                            <View style={styles.metricItem}>
+                                <Text style={styles.metricValue}>{item.communitySupport}%</Text>
+                                <Text style={styles.metricLabel}>دعم المجتمع</Text>
+                            </View>
+                            <View style={styles.metricItem}>
+                                <Text style={[styles.metricValue, { color: getRiskColor(item.riskLevel) }]}>
+                                    {item.riskLevel}
+                                </Text>
+                                <Text style={styles.metricLabel}>المخاطر</Text>
+                            </View>
+                        </View>
+                    </View>
+
                     <TouchableOpacity 
                         style={styles.actionButton}
                         onPress={() => handleOpportunityPress(item)}
@@ -316,7 +405,7 @@ export default function OpportunitiesScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Enhanced Header */}
+            {/* Header */}
             <View style={styles.headerContainer}>
                 <View style={styles.header}>
                     <View style={styles.leftIcons}>
@@ -327,12 +416,7 @@ export default function OpportunitiesScreen() {
                             <MaterialIcons name="filter-list" size={24} color="#1e293b" />
                         </TouchableOpacity>
                         
-                        <TouchableOpacity 
-                            style={styles.upgradeButton}
-                            onPress={() => setIsUpgradeModalVisible(true)}
-                        >
-                            <MaterialIcons name="star" size={24} color="#f59e0b" />
-                        </TouchableOpacity>
+                      
                     </View>
                     
                     <View style={styles.headerRight}>
@@ -389,63 +473,6 @@ export default function OpportunitiesScreen() {
                 </View>
             </Modal>
 
-            {/* Upgrade Modal */}
-            <Modal
-                visible={isUpgradeModalVisible}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => setIsUpgradeModalVisible(false)}
-            >
-                <View style={styles.upgradeModalOverlay}>
-                    <View style={styles.upgradeModalContent}>
-                        <View style={styles.upgradeIcon}>
-                            <MaterialIcons name="star" size={48} color="#f59e0b" />
-                        </View>
-                        
-                        <Text style={styles.upgradeTitle}>الترقية إلى مستثمر ملاك</Text>
-                        <Text style={styles.upgradeDescription}>
-                            انضم إلى مجتمع المستثمرين الملائكة واحصل على فرص استثمارية حصرية برؤوس أموال أكبر وعوائد أعلى
-                        </Text>
-                        
-                        <View style={styles.upgradeFeatures}>
-                            <View style={styles.featureItem}>
-                                <MaterialIcons name="check-circle" size={20} color="#16a34a" />
-                                <Text style={styles.featureText}>فرص استثمارية حصرية</Text>
-                            </View>
-                            <View style={styles.featureItem}>
-                                <MaterialIcons name="check-circle" size={20} color="#16a34a" />
-                                <Text style={styles.featureText}>رؤوس أموال أكبر</Text>
-                            </View>
-                            <View style={styles.featureItem}>
-                                <MaterialIcons name="check-circle" size={20} color="#16a34a" />
-                                <Text style={styles.featureText}>عوائد أعلى متوقعة</Text>
-                            </View>
-                          
-                        </View>
-                        
-                        <View style={styles.upgradeButtons}>
-                            <TouchableOpacity 
-                                style={styles.upgradeConfirmButton}
-                                onPress={() => {
-                                    setIsUpgradeModalVisible(false);
-                                    // Handle upgrade logic here
-                                    console.log("User confirmed upgrade to angel investor");
-                                }}
-                            >
-                                <Text style={styles.upgradeConfirmText}>نعم، أريد الترقية</Text>
-                            </TouchableOpacity>
-                            
-                            <TouchableOpacity 
-                                style={styles.upgradeCancelButton}
-                                onPress={() => setIsUpgradeModalVisible(false)}
-                            >
-                                <Text style={styles.upgradeCancelText}>ليس الآن</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-
             {/* Current Filter Display */}
             {selectedFilter !== "الكل" && (
                 <View style={styles.currentFilterContainer}>
@@ -461,40 +488,52 @@ export default function OpportunitiesScreen() {
                 </View>
             )}
 
-            {/* Category Filters without container */}
+            {/* Main Content */}
             <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filtersScrollContent}
-                style={styles.filtersScrollView}
-            >
-                {filters.map((filter, index) => (
-                    <TouchableOpacity 
-                        key={index}
-                        style={[
-                            styles.filterChip,
-                            selectedFilter === filter && styles.activeFilterChip
-                        ]}
-                        onPress={() => setSelectedFilter(filter)}
-                    >
-                        <Text style={[
-                            styles.filterText,
-                            selectedFilter === filter && styles.activeFilterText
-                        ]}>
-                            {filter}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-
-            {/* Opportunities List */}
-            <FlatList
-                data={filteredOpportunities}
-                renderItem={renderOpportunity}
-                keyExtractor={(item) => item.id}
+                style={styles.mainScrollView}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.opportunitiesList}
-            />
+                contentContainerStyle={styles.mainContent}
+            >
+                {/* My Investments Section */}
+                <View style={styles.sectionContainer}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>استثماراتي</Text>
+                        <View style={styles.sectionBadge}>
+                            <Text style={styles.sectionBadgeText}>1</Text>
+                        </View>
+                    </View>
+                    
+                    {renderInvestedOpportunity(investedOpportunity)}
+                </View>
+
+                {/* Available Opportunities Section */}
+                <View style={styles.sectionContainer}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>الفرص المتاحة</Text>
+                        <View style={[styles.sectionBadge, { backgroundColor: "#dbeafe", borderColor: "#3b82f6" }]}>
+                            <Text style={[styles.sectionBadgeText, { color: "#3b82f6" }]}>
+                                {filteredAvailableOpportunities.length}
+                            </Text>
+                        </View>
+                    </View>
+                    
+                    {filteredAvailableOpportunities.map((opportunity, index) => (
+                        <View key={opportunity.id} style={{ marginBottom: index === filteredAvailableOpportunities.length - 1 ? 0 : 16 }}>
+                            {renderAvailableOpportunity({ item: opportunity })}
+                        </View>
+                    ))}
+                    
+                    {filteredAvailableOpportunities.length === 0 && (
+                        <View style={styles.emptyState}>
+                            <MaterialIcons name="search" size={64} color="#cbd5e1" />
+                            <Text style={styles.emptyStateTitle}>لا توجد فرص متاحة</Text>
+                            <Text style={styles.emptyStateDescription}>
+                                جرب تغيير الفلتر أو تحقق لاحقاً من الفرص الجديدة
+                            </Text>
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
         </View>
     );
 }
@@ -507,7 +546,7 @@ const styles = StyleSheet.create({
     headerContainer: {
         backgroundColor: "#ffffff",
         paddingTop: 50,
-        paddingBottom: 0,
+        paddingBottom: 20,
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
         shadowColor: "#000",
@@ -521,7 +560,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 24,
-        paddingBottom: 32,
     },
     leftIcons: {
         flexDirection: "row",
@@ -538,19 +576,6 @@ const styles = StyleSheet.create({
         color: "#1e293b",
         textAlign: "right",
         lineHeight: 30
-    },
-    searchButton: {
-        width: 44,
-        height: 44,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 22,
-        backgroundColor: "#f1f5f9",
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-    },
-    headerSpacer: {
-        width: 44,
     },
     filterButton: {
         width: 44,
@@ -598,7 +623,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontFamily: "Almarai-Bold",
         color: "#1e293b",
-        textAlign:"center"
+        textAlign: "center"
     },
     closeButton: {
         width: 32,
@@ -663,172 +688,46 @@ const styles = StyleSheet.create({
     clearFilterButton: {
         padding: 2,
     },
-    upgradeModalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 20,
-    },
-    upgradeModalContent: {
-        backgroundColor: "#ffffff",
-        borderRadius: 24,
-        padding: 32,
-        alignItems: "center",
-        width: "100%",
-        maxWidth: 400,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
-        shadowRadius: 16,
-        elevation: 8,
-    },
-    upgradeIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: "#fef3c7",
-        alignItems: "center",
-        justifyContent: "center",
-        marginBottom: 24,
-    },
-    upgradeTitle: {
-        fontSize: 24,
-        fontFamily: "Almarai-Bold",
-        color: "#1e293b",
-        textAlign: "center",
-        marginBottom: 16,
-        lineHeight: 30
-    },
-    upgradeDescription: {
-        fontSize: 16,
-        fontFamily: "Almarai-Regular",
-        color: "#64748b",
-        textAlign: "center",
-        lineHeight: 24,
-        marginBottom: 24,
-    },
-    upgradeFeatures: {
-        width: "100%",
-        marginBottom: 32,
-    },
-    featureItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 12,
-        paddingHorizontal: 8,
-    },
-    featureText: {
-        fontSize: 16,
-        fontFamily: "Almarai-Medium",
-        color: "#1e293b",
-        marginRight: 12,
-        textAlign: "right",
+    mainScrollView: {
         flex: 1,
     },
-    upgradeButtons: {
-        width: "100%",
-        gap: 12,
-    },
-    upgradeConfirmButton: {
-        backgroundColor: "#16a34a",
-        paddingVertical: 16,
-        borderRadius: 16,
-        alignItems: "center",
-    },
-    upgradeConfirmText: {
-        fontSize: 18,
-        fontFamily: "Almarai-Bold",
-        color: "#ffffff",
-    },
-    upgradeCancelButton: {
-        backgroundColor: "#f8fafc",
-        paddingVertical: 16,
-        borderRadius: 16,
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-    },
-    upgradeCancelText: {
-        fontSize: 16,
-        fontFamily: "Almarai-Medium",
-        color: "#64748b",
-    },
-    filtersScrollView: {
-        display: "none", // Hide the old filter system
-    },
-    filtersScrollContent: {
-        paddingHorizontal: 20,
-        gap: 14,
-        flexDirection: 'row-reverse',
-        
-    },
-    filterChip: {
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderRadius: 25,
-        backgroundColor: "#ffffff",
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-        alignItems: "center",
-        justifyContent: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 1,
-        minHeight: 48,
-        height: 48, // Fixed height
-    },
-    activeFilterChip: {
-        backgroundColor: "#16a34a",
-        borderColor: "#16a34a",
-        shadowColor: "#16a34a",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    filterContent: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 7,
-    },
-    filterText: {
-        fontSize: 14,
-        fontFamily: "Almarai-Medium",
-        color: "#64748b",
-        textAlign: "center",
-        lineHeight: 20,
-        includeFontPadding: false,
-        textAlignVertical: "center",
-        paddingVertical: 0,
-        paddingHorizontal: 4,
-    },
-    activeFilterText: {
-        color: "#ffffff",
-        fontFamily: "Almarai-Bold",
-        fontSize: 14,
-        lineHeight: 20,
-        includeFontPadding: false,
-        textAlignVertical: "center",
-        paddingVertical: 0,
-    },
-    activeIndicator: {
-        position: "absolute",
-        bottom: -8,
-        left: "50%",
-        marginLeft: -3,
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: "#ffffff",
-    },
-    opportunitiesList: {
+    mainContent: {
         paddingHorizontal: 20,
         paddingVertical: 16,
         paddingBottom: 100,
-        gap: 16,
+    },
+    sectionContainer: {
+        marginBottom: 32,
+    },
+    sectionHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 16,
+        paddingHorizontal: 4,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontFamily: "Almarai-Bold",
+        color: "#1e293b",
+        marginRight: 8,
+        flex: 1,
+        textAlign: "right",
+        lineHeight: 30
+    },
+    sectionBadge: {
+        backgroundColor: "#f0fdf4",
+        borderWidth: 1,
+        borderColor: "#16a34a",
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        minWidth: 28,
+        alignItems: "center",
+    },
+    sectionBadgeText: {
+        fontSize: 12,
+        fontFamily: "Almarai-Bold",
+        color: "#16a34a",
     },
     opportunityCard: {
         backgroundColor: "#ffffff",
@@ -839,6 +738,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 6,
+        marginBottom: 16,
     },
     imageContainer: {
         position: "relative",
@@ -863,6 +763,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "flex-start",
         alignItems: "flex-start",
+        gap: 8,
     },
     statusBadge: {
         paddingHorizontal: 12,
@@ -873,6 +774,52 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: "Almarai-Bold",
         color: "#ffffff",
+    },
+    // Enhanced invested badge style
+    investedBadge: {
+        backgroundColor: "rgba(22, 163, 74, 0.95)", // Semi-transparent green
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        shadowColor: "#16a34a",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: "rgba(255, 255, 255, 0.3)",
+    },
+    investedBadgeText: {
+        fontSize: 13,
+        fontFamily: "Almarai-Bold",
+        color: "#ffffff",
+        letterSpacing: 0.3,
+    },
+    // Enhanced suitable badge style
+    suitableBadge: {
+        backgroundColor: "rgba(59, 130, 246, 0.95)", // Semi-transparent blue
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        shadowColor: "#3b82f6",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: "rgba(255, 255, 255, 0.3)",
+    },
+    suitableBadgeText: {
+        fontSize: 13,
+        fontFamily: "Almarai-Bold",
+        color: "#ffffff",
+        letterSpacing: 0.3,
     },
     titleSection: {
         alignItems: "flex-end",
@@ -889,16 +836,40 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 4,
-        
     },
     locationText: {
         fontSize: 14,
         fontFamily: "Almarai-Medium",
         color: "#ffffff",
-
     },
     cardContent: {
         padding: 16,
+    },
+    investmentSummary: {
+        backgroundColor: "#f0fdf4",
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: "#bbf7d0",
+    },
+    investmentRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 8,
+    },
+    investmentLabel: {
+        fontSize: 14,
+        fontFamily: "Almarai-Medium",
+        color: "#15803d",
+        textAlign: "right",
+        flex: 1,
+    },
+    investmentValue: {
+        fontSize: 16,
+        fontFamily: "Almarai-Bold",
+        color: "#1e293b",
     },
     metricsContainer: {
         flexDirection: "row",
@@ -952,42 +923,6 @@ const styles = StyleSheet.create({
         textAlign: "center",
         lineHeight: 20
     },
-    infoSection: {
-        gap: 16,
-        marginBottom: 16,
-    },
-    infoRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingVertical: 8,
-    },
-    infoItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-    },
-    iconContainer: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: "#f8fafc",
-        alignItems: "center",
-        justifyContent: "center",
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-    },
-    infoLabel: {
-        fontSize: 15,
-        fontFamily: "Almarai-Medium",
-        color: "#64748b",
-        textAlign: "right",
-    },
-    infoValue: {
-        fontSize: 16,
-        fontFamily: "Almarai-Bold",
-        color: "#1e293b",
-    },
     actionButton: {
         backgroundColor: "#16a34a",
         flexDirection: "row",
@@ -1002,5 +937,26 @@ const styles = StyleSheet.create({
         fontFamily: "Almarai-Bold",
         color: "#ffffff",
         lineHeight: 20
+    },
+    emptyState: {
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 40,
+        paddingHorizontal: 20,
+    },
+    emptyStateTitle: {
+        fontSize: 18,
+        fontFamily: "Almarai-Bold",
+        color: "#64748b",
+        textAlign: "center",
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    emptyStateDescription: {
+        fontSize: 14,
+        fontFamily: "Almarai-Regular",
+        color: "#94a3b8",
+        textAlign: "center",
+        lineHeight: 20,
     },
 });

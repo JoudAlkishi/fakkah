@@ -1,5 +1,4 @@
-import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -7,7 +6,6 @@ import {
   Alert,
   Animated,
   Image,
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -19,56 +17,29 @@ import {
 
 export default function SignUpPage() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [wantsAngelInvestor, setWantsAngelInvestor] = useState("");
-  const [isVerifyingId, setIsVerifyingId] = useState(false);
-  const [idVerificationStatus, setIdVerificationStatus] = useState(""); // "verified", "failed", ""
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isLinkingCard, setIsLinkingCard] = useState(false);
   const [showCardDropdown, setShowCardDropdown] = useState(false);
   const [cardLinked, setCardLinked] = useState(false);
-  
-  // Date picker states
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [nafathLoggedIn, setNafathLoggedIn] = useState(false);
+  const [showNafathInputScreen, setShowNafathInputScreen] = useState(false);
+  const [showRiskAssessment, setShowRiskAssessment] = useState(false);
 
   const [formData, setFormData] = useState({
     nationalId: "",
-    birthDate: "",
     name: "",
-    email: "",
     phone: "",
-    password: "",
-    confirmPassword: "",
-    walletType: "بطاقة ائتمانية",
+    birthdate: "",
     cardNumber: "",
     cardName: "",
     expiryMonth: "",
     expiryYear: "",
     cvv: "",
-    budget: "",
-    interestField: "",
-    riskLevel: "",
-    expectedROI: "",
   });
 
-  const [showInterestDropdown, setShowInterestDropdown] = useState(false);
-  const [showRiskDropdown, setShowRiskDropdown] = useState(false);
-
-  const interestOptions = [
-    { label: "التكنولوجيا", value: "technology" },
-    { label: "التجارة الإلكترونية", value: "ecommerce" },
-    { label: "الصحة", value: "healthcare" },
-    { label: "التعليم", value: "education" },
-    { label: "الطاقة المتجددة", value: "renewable_energy" },
-    { label: "العقارات", value: "real_estate" },
-    { label: "الخدمات المالية", value: "fintech" },
-    { label: "السياحة", value: "tourism" },
-  ];
-
-  const riskOptions = [
-    { label: "منخفض", value: "low" },
-    { label: "متوسط", value: "medium" },
-    { label: "عالي", value: "high" },
-  ];
+  const [riskAssessment, setRiskAssessment] = useState({
+    riskCategory: "",
+  });
 
   const logoAnim = useRef(new Animated.Value(0)).current;
   const contentAnim = useRef(new Animated.Value(50)).current;
@@ -97,89 +68,50 @@ export default function SignUpPage() {
     animationSequence.start();
   }, []);
 
-  // Format date to DD/MM/YYYY
-  const formatDate = (date: Date) => {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+  // Function to check if all required fields are complete
+  const isFormComplete = () => {
+    return (
+      nafathLoggedIn &&
+      formData.name &&
+      formData.phone &&
+      formData.birthdate &&
+      cardLinked
+    );
   };
 
-  // Handle date picker change
-  const onDateChange = (event: any, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    
-    if (date) {
-      setSelectedDate(date);
-      const formattedDate = formatDate(date);
-      setFormData({ ...formData, birthDate: formattedDate });
-      setIdVerificationStatus(""); // Reset verification status
-    }
+  // Handle Nafath login button click
+  const handleNafathLogin = () => {
+    setShowNafathInputScreen(true);
   };
 
-  // Show date picker
-  const showDatePickerModal = () => {
-    setShowDatePicker(true);
-  };
-
-  // Calculate maximum date (18 years ago from today)
-  const getMaxDate = () => {
-    const today = new Date();
-    const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-    return maxDate;
-  };
-
-  // Calculate minimum date (100 years ago from today)
-  const getMinDate = () => {
-    const today = new Date();
-    const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
-    return minDate;
-  };
-
-  // Simulate National ID verification using SAMA Yaqeen service
-  const verifyNationalId = async () => {
-    if (!formData.nationalId || !formData.birthDate) {
-      Alert.alert("تنبيه", "يرجى إدخال رقم الهوية الوطنية وتاريخ الميلاد");
+  // Handle national ID verification
+  const handleNafathVerification = () => {
+    if (!formData.nationalId || formData.nationalId.length !== 10) {
+      Alert.alert("تنبيه", "يرجى إدخال رقم هوية وطنية صحيح (10 أرقام)");
       return;
     }
 
-    setIsVerifyingId(true);
-    setIdVerificationStatus("");
-
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Prototype logic: Check if ID follows Saudi National ID format
-    // Real Saudi National ID: 10 digits, starts with 1 or 2
-    const isValidFormat = /^[12]\d{9}$/.test(formData.nationalId);
-
-    // For prototype: some IDs will be "verified", others "failed"
-    const mockVerifiedIds = ["1234567890", "2123456789", "1987654321"];
-    const isVerified =
-      isValidFormat &&
-      (mockVerifiedIds.includes(formData.nationalId) || Math.random() > 0.3);
-
-    if (isVerified) {
-      setIdVerificationStatus("verified");
+    setIsLoggingIn(true);
+    setTimeout(() => {
+      setIsLoggingIn(false);
+      setNafathLoggedIn(true);
+      setShowNafathInputScreen(false);
+      // Auto-fill some basic info after successful Nafath login
+      setFormData({
+        ...formData,
+        name: "عبدالكريم الشهري",
+        nationalId: "1234567890",
+        birthdate: "1990-05-15",
+      });
       Alert.alert(
-        "تم التحقق بنجاح",
-        "تم التحقق من الهوية الوطنية بنجاح عبر خدمة يقين",
+        "تم تسجيل الدخول بنجاح",
+        "تم تسجيل الدخول عبر النفاذ الوطني الموحد بنجاح",
         [{ text: "موافق" }]
       );
-    } else {
-      setIdVerificationStatus("failed");
-      Alert.alert(
-        "فشل التحقق",
-        "لم يتم التحقق من الهوية الوطنية. يرجى التأكد من صحة البيانات",
-        [{ text: "موافق" }]
-      );
-    }
-
-    setIsVerifyingId(false);
+    }, 2000);
   };
 
+  // Handle card linking
   const handleCardLinking = () => {
     const requiredCardFields = [
       "cardNumber",
@@ -197,7 +129,9 @@ export default function SignUpPage() {
       return;
     }
 
+    setIsLinkingCard(true);
     setTimeout(() => {
+      setIsLinkingCard(false);
       setCardLinked(true);
       setShowCardDropdown(false);
       Alert.alert(
@@ -205,719 +139,197 @@ export default function SignUpPage() {
         "تم ربط البطاقة الائتمانية بنجاح. تم خصم 0 ريال سعودي للتحقق من الحساب",
         [{ text: "موافق" }]
       );
-    }, 1000);
+    }, 2000);
   };
 
-  const handleNext = () => {
-    // Check if National ID is verified before proceeding from step 1
-    if (currentStep === 1 && idVerificationStatus !== "verified") {
-      Alert.alert("تنبيه", "يرجى التحقق من صحة الهوية الوطنية أولاً");
+  // Handle proceeding to risk assessment
+  const handleProceedToRiskAssessment = () => {
+    if (!isFormComplete()) {
+      let missingItems = [];
+
+      if (!nafathLoggedIn) {
+        missingItems.push("تسجيل الدخول عبر النفاذ الوطني الموحد");
+      }
+      if (!formData.name) missingItems.push("الاسم الكامل");
+      if (!formData.phone) missingItems.push("رقم الجوال");
+      if (!formData.birthdate) missingItems.push("تاريخ الميلاد");
+      if (!cardLinked) missingItems.push("ربط البطاقة الائتمانية");
+
+      Alert.alert("تنبيه", `يرجى إكمال: ${missingItems.join("، ")}`);
       return;
     }
 
-    if (currentStep === 2 && !wantsAngelInvestor) {
-      Alert.alert("تنبيه", "يرجى اختيار إجابة للسؤال");
-      return;
-    }
-
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
+    setShowRiskAssessment(true);
   };
 
-  const handleSubmit = () => {
-    let requiredFields = [
-      "nationalId",
-      "birthDate",
-      "name",
-      "email",
-      "phone",
-      "password",
-      "confirmPassword",
-    ];
-
-    if (wantsAngelInvestor === "yes") {
-      requiredFields = [
-        ...requiredFields,
-        "budget",
-        "interestField",
-        "riskLevel",
-        "expectedROI",
-      ];
-    }
-
-    const missingFields = requiredFields.filter(
-      (field) => !formData[field as keyof typeof formData]
-    );
-
-    if (missingFields.length > 0) {
-      Alert.alert(
-        "تنبيه",
-        `يرجى ملء جميع الحقول المطلوبة: ${missingFields
-          .map((field) => {
-            switch (field) {
-              case "nationalId":
-                return "الهوية الوطنية";
-              case "birthDate":
-                return "تاريخ الميلاد";
-              case "name":
-                return "الاسم الكامل";
-              case "email":
-                return "البريد الإلكتروني";
-              case "phone":
-                return "رقم الجوال";
-              case "password":
-                return "كلمة المرور";
-              case "confirmPassword":
-                return "تأكيد كلمة المرور";
-              case "budget":
-                return "الميزانية";
-              case "interestField":
-                return "مجال الاهتمام";
-              case "riskLevel":
-                return "مستوى المخاطرة";
-              case "expectedROI":
-                return "العائد المتوقع";
-              default:
-                return field;
-            }
-          })
-          .join(", ")}`
-      );
+  // Handle account creation and navigation to home
+  const handleCreateAccount = () => {
+    if (!riskAssessment.riskCategory) {
+      Alert.alert("تنبيه", "يرجى اختيار تصنيف المخاطر");
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      Alert.alert("تنبيه", "كلمة المرور وتأكيد كلمة المرور غير متطابقين");
-      return;
-    }
-
-    if (idVerificationStatus !== "verified") {
-      Alert.alert("تنبيه", "يرجى التحقق من صحة الهوية الوطنية أولاً");
-      return;
-    }
-
-    if (!cardLinked) {
-      Alert.alert("تنبيه", "يرجى ربط البطاقة الائتمانية أولاً");
-      return;
-    }
-
-    Alert.alert("نجح التسجيل", "تم إنشاء الحساب بنجاح", [
-      { text: "موافق", onPress: () => router.push("/Home") },
-    ]);
-  };
-
-  const handleAngelInvestorChoice = (choice: "yes" | "no") => {
-    setWantsAngelInvestor(choice);
-    if (choice === "no") {
-      Alert.alert("نجح التسجيل", "تم إنشاء الحساب بنجاح", [
-        { text: "موافق", onPress: () => router.push("/Home") },
-      ]);
+    // Navigate directly to home page
+    try {
+      console.log("Navigating to home...");
+      router.replace("/Home");
+    } catch (error) {
+      console.error("Navigation error:", error);
+      // Try alternative paths
+      try {
+        router.replace("/Home");
+      } catch (e) {
+        try {
+          router.push("/Home");
+        } catch (e2) {
+          Alert.alert("نجح التسجيل", "تم إنشاء الحساب بنجاح", [
+            { text: "موافق", onPress: () => router.push("/") },
+          ]);
+        }
+      }
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const formatBirthdate = (text: string) => {
+    // Remove any non-digit characters
+    const cleaned = text.replace(/\D/g, "");
 
-  const renderIdVerificationStatus = () => {
-    if (isVerifyingId) {
+    // Add slashes at appropriate positions
+    if (cleaned.length >= 4) {
       return (
-        <View style={styles.verificationContainer}>
-          <ActivityIndicator size="small" color="#001a6e" />
-          <Text style={styles.verificationText}>
-            جاري التحقق من الهوية عبر خدمة يقين...
-          </Text>
-        </View>
+        cleaned.slice(0, 4) +
+        "/" +
+        (cleaned.length >= 6
+          ? cleaned.slice(4, 6) + "/" + cleaned.slice(6, 8)
+          : cleaned.slice(4))
       );
     }
-
-    if (idVerificationStatus === "verified") {
-      return (
-        <View style={[styles.verificationContainer, styles.verifiedContainer]}>
-          <MaterialIcons name="verified" size={20} color="#01a736" />
-          <Text style={styles.verifiedText}>تم التحقق من الهوية بنجاح</Text>
-        </View>
-      );
-    }
-
-    if (idVerificationStatus === "failed") {
-      return (
-        <View style={[styles.verificationContainer, styles.failedContainer]}>
-          <MaterialIcons name="error" size={20} color="#d32f2f" />
-          <Text style={styles.failedText}>فشل التحقق من الهوية</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={verifyNationalId}
-          >
-            <Text style={styles.retryButtonText}>إعادة المحاولة</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return null;
+    return cleaned;
   };
 
-  const renderBasicInfo = () => (
-    <Animated.View
-      style={[styles.stepContent, { transform: [{ translateY: contentAnim }] }]}
-    >
-      <Text style={styles.stepTitle}>المعلومات الأساسية</Text>
-      <Text style={styles.stepSubtitle}>أدخل معلوماتك الشخصية</Text>
+  const getProgressWidth = () => {
+    if (showRiskAssessment) return "90%";
+    return "60%";
+  };
 
-      {/* National ID Input */}
-      <View style={styles.inputContainer}>
-        <MaterialIcons
-          name="credit-card"
-          size={20}
-          color="#001a6e"
-          style={styles.inputIcon}
+  // Risk Assessment Screen
+  if (showRiskAssessment) {
+    return (
+      <>
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="#fefefe"
+          translucent={false}
         />
-        <TextInput
-          style={styles.textInput}
-          placeholder="رقم الهوية الوطنية (10 أرقام)"
-          placeholderTextColor="#999"
-          value={formData.nationalId}
-          onChangeText={(text) => {
-            setFormData({ ...formData, nationalId: text });
-            setIdVerificationStatus(""); // Reset verification status
-          }}
-          keyboardType="numeric"
-          maxLength={10}
-        />
-        {idVerificationStatus === "verified" && (
-          <MaterialIcons name="check-circle" size={20} color="#01a736" />
-        )}
-      </View>
+        <View style={styles.background}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.container}>
+              <Animated.View
+                style={[styles.logoContainer, { opacity: logoAnim }]}
+              >
+                <Image
+                  source={require("@/assets/images/GreenFakatk.png")}
+                  style={styles.image}
+                  resizeMode="contain"
+                />
+              </Animated.View>
 
-      {/* Birth Date Input with Date Picker */}
-      <TouchableOpacity style={styles.inputContainer} onPress={showDatePickerModal}>
-        <MaterialIcons
-          name="cake"
-          size={20}
-          color="#001a6e"
-          style={styles.inputIcon}
-        />
-        <View style={styles.dateInputContainer}>
-          <Text style={[
-            styles.dateText, 
-            !formData.birthDate && styles.dateTextPlaceholder
-          ]}>
-            {formData.birthDate || "تاريخ الميلاد (يوم/شهر/سنة)"}
-          </Text>
-        </View>
-        {idVerificationStatus === "verified" && (
-          <MaterialIcons name="check-circle" size={20} color="#01a736" />
-        )}
-      </TouchableOpacity>
-
-      {/* Date Picker Modal */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onDateChange}
-          maximumDate={getMaxDate()}
-          minimumDate={getMinDate()}
-          locale="ar"
-        />
-      )}
-
-      <Text style={styles.yaqeenInfo}>
-        يتم التحقق من بياناتك بشكل آمن من خلال خدمة يقين التابعة لمركز المعلومات
-        الوطني، لضمان حماية حسابك والامتثال للوائح السعودية
-      </Text>
-
-      <TouchableOpacity
-        style={[
-          styles.verifyButton,
-          idVerificationStatus === "verified" && styles.verifiedButton,
-        ]}
-        onPress={verifyNationalId}
-        disabled={isVerifyingId || idVerificationStatus === "verified"}
-      >
-        {isVerifyingId ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <>
-            <Text style={styles.verifyButtonText}>
-              {idVerificationStatus === "verified" ? "تم التحقق" : "تحقق الآن"}
-            </Text>
-            {idVerificationStatus === "verified" && (
-              <MaterialIcons
-                name="check"
-                size={20}
-                color="#fff"
-                style={{ marginLeft: 8 }}
-              />
-            )}
-          </>
-        )}
-      </TouchableOpacity>
-
-      {renderIdVerificationStatus()}
-
-      {idVerificationStatus === "verified" && (
-        <>
-          <View style={styles.inputContainer}>
-            <MaterialIcons
-              name="person"
-              size={20}
-              color="#001a6e"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.textInput}
-              placeholder="الاسم الكامل"
-              placeholderTextColor="#999"
-              value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <MaterialIcons
-              name="email"
-              size={20}
-              color="#001a6e"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.textInput}
-              placeholder="البريد الإلكتروني"
-              placeholderTextColor="#999"
-              value={formData.email}
-              onChangeText={(text) => setFormData({ ...formData, email: text })}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <MaterialIcons
-              name="phone"
-              size={20}
-              color="#001a6e"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.textInput}
-              placeholder="رقم الجوال"
-              placeholderTextColor="#999"
-              value={formData.phone}
-              onChangeText={(text) => setFormData({ ...formData, phone: text })}
-              keyboardType="phone-pad"
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <MaterialIcons
-              name="lock"
-              size={20}
-              color="#001a6e"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.textInput}
-              placeholder="كلمة المرور"
-              placeholderTextColor="#999"
-              value={formData.password}
-              onChangeText={(text) =>
-                setFormData({ ...formData, password: text })
-              }
-              secureTextEntry
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <MaterialIcons
-              name="lock-outline"
-              size={20}
-              color="#001a6e"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.textInput}
-              placeholder="تأكيد كلمة المرور"
-              placeholderTextColor="#999"
-              value={formData.confirmPassword}
-              onChangeText={(text) =>
-                setFormData({ ...formData, confirmPassword: text })
-              }
-              secureTextEntry
-            />
-          </View>
-
-          <View style={styles.walletContainer}>
-            <Text style={styles.walletLabel}>طريقة الدفع</Text>
-            <TouchableOpacity
-              style={[styles.walletOption, cardLinked && styles.linkedWallet]}
-              onPress={() => setShowCardDropdown(!showCardDropdown)}
-            >
-              <MaterialIcons name="credit-card" size={24} color="#001a6e" />
-              <Text style={styles.walletText}>بطاقة ائتمانية</Text>
-              {cardLinked ? (
-                <View style={styles.linkedIndicator}>
-                  <MaterialIcons
-                    name="check-circle"
-                    size={20}
-                    color="#01a736"
-                  />
-                  <Text style={styles.linkedText}>مربوطة</Text>
-                </View>
-              ) : (
-                <View style={styles.dropdownIndicator}>
-                  <Text style={styles.linkText}>اضغط لإدخال البيانات</Text>
-                  <Ionicons
-                    name={showCardDropdown ? "chevron-up" : "chevron-down"}
-                    size={20}
-                    color="#001a6e"
-                  />
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {showCardDropdown && !cardLinked && (
-              <View style={styles.cardDropdown}>
-                <View style={styles.cardLogos}>
-                  <Text style={styles.acceptedCardsText}>
-                    البطاقات المقبولة:
-                  </Text>
-                  <View style={styles.logoRow}>
-                    <Text style={styles.cardLogo}>💳 VISA</Text>
-                    <Text style={styles.cardLogo}>💳 MasterCard</Text>
-                    <Text style={styles.cardLogo}>💳 AMEX</Text>
-                    <Text style={styles.cardLogo}>💳 مدى</Text>
-                  </View>
-                </View>
-
-                <View style={styles.cardInputContainer}>
-                  <TextInput
-                    style={styles.cardInput}
-                    placeholder="رقم البطاقة (0000 0000 0000 0000)"
-                    placeholderTextColor="#999"
-                    value={formData.cardNumber}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, cardNumber: text })
-                    }
-                    keyboardType="numeric"
-                    maxLength={19}
-                  />
-                </View>
-
-                <View style={styles.cardInputContainer}>
-                  <TextInput
-                    style={styles.cardInput}
-                    placeholder="الاسم على البطاقة"
-                    placeholderTextColor="#999"
-                    value={formData.cardName}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, cardName: text })
-                    }
-                  />
-                </View>
-
-                <View style={styles.cardRowInputs}>
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
                   <View
-                    style={[
-                      styles.cardInputContainer,
-                      { flex: 1, marginRight: 10 },
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.cardInput}
-                      placeholder="السنة"
-                      placeholderTextColor="#999"
-                      value={formData.expiryYear}
-                      onChangeText={(text) =>
-                        setFormData({ ...formData, expiryYear: text })
-                      }
-                      keyboardType="numeric"
-                      maxLength={2}
-                    />
-                  </View>
-                  <View
-                    style={[
-                      styles.cardInputContainer,
-                      { flex: 1, marginRight: 10 },
-                    ]}
-                  >
-                    <TextInput
-                      style={styles.cardInput}
-                      placeholder="الشهر"
-                      placeholderTextColor="#999"
-                      value={formData.expiryMonth}
-                      onChangeText={(text) =>
-                        setFormData({ ...formData, expiryMonth: text })
-                      }
-                      keyboardType="numeric"
-                      maxLength={2}
-                    />
-                  </View>
-                  <View style={[styles.cardInputContainer, { flex: 1 }]}>
-                    <TextInput
-                      style={styles.cardInput}
-                      placeholder="CVV"
-                      placeholderTextColor="#999"
-                      value={formData.cvv}
-                      onChangeText={(text) =>
-                        setFormData({ ...formData, cvv: text })
-                      }
-                      keyboardType="numeric"
-                      maxLength={3}
-                      secureTextEntry
-                    />
-                  </View>
+                    style={[styles.progressFill, { width: getProgressWidth() }]}
+                  />
                 </View>
+              </View>
 
-                <Text style={styles.cardNote}>
-                  ملاحظة: سيتم سحب مبلغ 0 ريال للتأكد من صلاحية البطاقة ومن ثم
-                  إعادة المبلغ بشكل تلقائي.
+              <View style={styles.contentContainer}>
+                <Text style={styles.assessmentTitle}>تقييم المخاطر</Text>
+                <Text style={styles.assessmentSubtitle}>
+                  اختر تصنيف المخاطر المناسب لك
                 </Text>
 
-                <TouchableOpacity
-                  style={styles.linkCardButton}
-                  onPress={handleCardLinking}
-                >
-                  <Text style={styles.linkCardButtonText}>ربط البطاقة</Text>
-                </TouchableOpacity>
+                <View style={styles.questionContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      riskAssessment.riskCategory === "low" &&
+                        styles.selectedOption,
+                    ]}
+                    onPress={() =>
+                      setRiskAssessment({
+                        ...riskAssessment,
+                        riskCategory: "low",
+                      })
+                    }
+                  >
+                    <View style={styles.radioButton}>
+                      {riskAssessment.riskCategory === "low" && (
+                        <View style={styles.radioButtonSelected} />
+                      )}
+                    </View>
+                    <Text style={styles.optionText}>مخاطر ائتمانية منخفضة</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      riskAssessment.riskCategory === "medium" &&
+                        styles.selectedOption,
+                    ]}
+                    onPress={() =>
+                      setRiskAssessment({
+                        ...riskAssessment,
+                        riskCategory: "medium",
+                      })
+                    }
+                  >
+                    <View style={styles.radioButton}>
+                      {riskAssessment.riskCategory === "medium" && (
+                        <View style={styles.radioButtonSelected} />
+                      )}
+                    </View>
+                    <Text style={styles.optionText}>مخاطر ائتمانية معتدلة</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.optionButton,
+                      riskAssessment.riskCategory === "high" &&
+                        styles.selectedOption,
+                    ]}
+                    onPress={() =>
+                      setRiskAssessment({
+                        ...riskAssessment,
+                        riskCategory: "high",
+                      })
+                    }
+                  >
+                    <View style={styles.radioButton}>
+                      {riskAssessment.riskCategory === "high" && (
+                        <View style={styles.radioButtonSelected} />
+                      )}
+                    </View>
+                    <Text style={styles.optionText}>مخاطر ائتمانية عالية</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.navigationContainer}>
+                  <TouchableOpacity
+                    style={styles.nextButton}
+                    onPress={handleCreateAccount}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.nextButtonText}>إنشاء الحساب</Text>
+                    <Ionicons name="arrow-forward" size={20} color="#fefefe" />
+                  </TouchableOpacity>
+                </View>
               </View>
-            )}
-          </View>
-        </>
-      )}
-    </Animated.View>
-  );
-
-  const renderAngelInvestorQuestion = () => (
-    <Animated.View
-      style={[styles.stepContent, { transform: [{ translateY: contentAnim }] }]}
-    >
-      <Text style={styles.stepTitle}>نوع الحساب</Text>
-      <Text style={styles.stepSubtitle}>هل تريد التسجيل كمستثمر ملائكي؟</Text>
-
-      <TouchableOpacity
-        style={[
-          styles.choiceCard,
-          wantsAngelInvestor === "yes" && styles.selectedCard,
-        ]}
-        onPress={() => handleAngelInvestorChoice("yes")}
-      >
-        <FontAwesome5
-          name="user-tie"
-          size={35}
-          color={wantsAngelInvestor === "yes" ? "#01a736" : "#001a6e"}
-        />
-        <Text
-          style={[
-            styles.cardTitle,
-            wantsAngelInvestor === "yes" && styles.selectedCardText,
-          ]}
-        >
-          نعم
-        </Text>
-        <Text
-          style={[
-            styles.cardDescription,
-            wantsAngelInvestor === "yes" && styles.selectedCardText,
-          ]}
-        >
-          أريد أن أكون مستثمر ملائكي وأقدم التمويل للمشاريع
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[
-          styles.choiceCard,
-          wantsAngelInvestor === "no" && styles.selectedCard,
-        ]}
-        onPress={() => handleAngelInvestorChoice("no")}
-      >
-        <MaterialIcons
-          name="person"
-          size={40}
-          color={wantsAngelInvestor === "no" ? "#01a736" : "#001a6e"}
-        />
-        <Text
-          style={[
-            styles.cardTitle,
-            wantsAngelInvestor === "no" && styles.selectedCardText,
-          ]}
-        >
-          لا
-        </Text>
-        <Text
-          style={[
-            styles.cardDescription,
-            wantsAngelInvestor === "no" && styles.selectedCardText,
-          ]}
-        >
-          أريد حساب عادي للبحث عن فرص الاستثمار
-        </Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-
-  const renderAngelInvestorPreferences = () => (
-    <Animated.View
-      style={[styles.stepContent, { transform: [{ translateY: contentAnim }] }]}
-    >
-      <Text style={styles.stepTitle}>تفضيلات الاستثمار</Text>
-      <Text style={styles.stepSubtitle}>حدد تفضيلاتك الاستثمارية</Text>
-
-      <View style={styles.inputContainer}>
-        <MaterialIcons
-          name="attach-money"
-          size={20}
-          color="#001a6e"
-          style={styles.inputIcon}
-        />
-        <TextInput
-          style={styles.textInput}
-          placeholder="الميزانية (ريال سعودي)"
-          placeholderTextColor="#999"
-          value={formData.budget}
-          onChangeText={(text) => setFormData({ ...formData, budget: text })}
-          keyboardType="numeric"
-        />
-      </View>
-
-      <View style={styles.dropdownContainer}>
-        <TouchableOpacity
-          style={styles.dropdownButton}
-          onPress={() => setShowInterestDropdown(!showInterestDropdown)}
-        >
-          <Text
-            style={[
-              styles.dropdownText,
-              !formData.interestField && styles.placeholderText,
-            ]}
-          >
-            {formData.interestField
-              ? interestOptions.find(
-                  (opt) => opt.value === formData.interestField
-                )?.label
-              : "اختر مجال الاهتمام"}
-          </Text>
-          <Ionicons
-            name={showInterestDropdown ? "chevron-up" : "chevron-down"}
-            size={20}
-            color="#001a6e"
-          />
-        </TouchableOpacity>
-        {showInterestDropdown && (
-          <ScrollView
-            style={styles.dropdownOptions}
-            nestedScrollEnabled={true}
-            showsVerticalScrollIndicator={true}
-          >
-            {interestOptions.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={styles.dropdownOption}
-                onPress={() => {
-                  setFormData({ ...formData, interestField: option.value });
-                  setShowInterestDropdown(false);
-                }}
-              >
-                <Text style={styles.dropdownOptionText}>{option.label}</Text>
-              </TouchableOpacity>
-            ))}
+            </View>
           </ScrollView>
-        )}
-      </View>
-
-      <View style={styles.dropdownContainer}>
-        <TouchableOpacity
-          style={styles.dropdownButton}
-          onPress={() => setShowRiskDropdown(!showRiskDropdown)}
-        >
-          <Text
-            style={[
-              styles.dropdownText,
-              !formData.riskLevel && styles.placeholderText,
-            ]}
-          >
-            {formData.riskLevel
-              ? riskOptions.find((opt) => opt.value === formData.riskLevel)
-                  ?.label
-              : "اختر مستوى المخاطرة"}
-          </Text>
-          <Ionicons
-            name={showRiskDropdown ? "chevron-up" : "chevron-down"}
-            size={20}
-            color="#001a6e"
-          />
-        </TouchableOpacity>
-        {showRiskDropdown && (
-          <ScrollView
-            style={styles.dropdownOptions}
-            nestedScrollEnabled={true}
-            showsVerticalScrollIndicator={true}
-          >
-            {riskOptions.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={styles.dropdownOption}
-                onPress={() => {
-                  setFormData({ ...formData, riskLevel: option.value });
-                  setShowRiskDropdown(false);
-                }}
-              >
-                <Text style={styles.dropdownOptionText}>{option.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
-      </View>
-
-      <View style={styles.inputContainer}>
-        <MaterialIcons
-          name="show-chart"
-          size={20}
-          color="#001a6e"
-          style={styles.inputIcon}
-        />
-        <TextInput
-          style={styles.textInput}
-          placeholder="العائد المتوقع على الاستثمار (%)"
-          placeholderTextColor="#999"
-          value={formData.expectedROI}
-          onChangeText={(text) =>
-            setFormData({ ...formData, expectedROI: text })
-          }
-          keyboardType="numeric"
-        />
-      </View>
-    </Animated.View>
-  );
-
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        return renderBasicInfo();
-      case 2:
-        return renderAngelInvestorQuestion();
-      case 3:
-        return wantsAngelInvestor === "yes"
-          ? renderAngelInvestorPreferences()
-          : null;
-      default:
-        return renderBasicInfo();
-    }
-  };
-
-  const getTotalSteps = () => {
-    return wantsAngelInvestor === "yes" ? 3 : 2;
-  };
-
-  const shouldShowNextButton = () => {
-    return !(currentStep === 2 && wantsAngelInvestor === "no");
-  };
+        </View>
+      </>
+    );
+  }
 
   return (
     <>
@@ -940,49 +352,363 @@ export default function SignUpPage() {
             </Animated.View>
 
             <View style={styles.progressContainer}>
-              <Text style={styles.progressText}>
-                الخطوة {currentStep} من {getTotalSteps()}
-              </Text>
               <View style={styles.progressBar}>
                 <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${(currentStep / getTotalSteps()) * 100}%` },
-                  ]}
+                  style={[styles.progressFill, { width: getProgressWidth() }]}
                 />
               </View>
             </View>
 
             <View style={styles.contentContainer}>
-              {renderCurrentStep()}
+              <Animated.View
+                style={[
+                  styles.stepContent,
+                  { transform: [{ translateY: contentAnim }] },
+                ]}
+              >
+                {/* Nafath Input Screen */}
+                {showNafathInputScreen ? (
+                  <View>
+                    <Text style={styles.stepTitle}>التحقق من الهوية</Text>
+                    <Text style={styles.stepSubtitle}>
+                      ادخل رقم الهوية الوطنية للتحقق من بياناتك
+                    </Text>
 
-              {shouldShowNextButton() && (
-                <View style={styles.navigationContainer}>
-                  {currentStep > 1 && (
+                    <View style={styles.inputContainer}>
+                      <MaterialIcons
+                        name="credit-card"
+                        size={20}
+                        color="#001a6e"
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="رقم الهوية الوطنية"
+                        placeholderTextColor="#999"
+                        value={formData.nationalId}
+                        onChangeText={(text) =>
+                          setFormData({ ...formData, nationalId: text })
+                        }
+                        keyboardType="numeric"
+                        maxLength={10}
+                      />
+                    </View>
+
                     <TouchableOpacity
-                      style={styles.backButton}
-                      onPress={handleBack}
+                      style={[
+                        styles.nafathLoginButton,
+                        isLoggingIn && styles.nafathLoggedInButton,
+                      ]}
+                      onPress={handleNafathVerification}
+                      disabled={isLoggingIn}
                     >
-                      <Ionicons name="arrow-back" size={20} color="#001a6e" />
-                      <Text style={styles.backButtonText}>السابق</Text>
+                      {isLoggingIn ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                      ) : (
+                        <Text style={styles.nafathButtonText}>التحقق</Text>
+                      )}
                     </TouchableOpacity>
-                  )}
+                  </View>
+                ) : (
+                  // Initial Nafath login screen
+                  <>
+                    <Text style={styles.stepTitle1}>
+                      سجل دخولك عبر النفاذ الوطني الموحد
+                    </Text>
 
+                    <Animated.View
+                      style={[
+                        styles.nicLogoContainer,
+                        { opacity: logoAnim, transform: [{ scale: logoAnim }] },
+                      ]}
+                    >
+                      <Image
+                        source={require("@/assets/images/NIC.png")}
+                        style={{ width: "200%", height: "200%" }}
+                        resizeMode="contain"
+                      />
+                    </Animated.View>
+
+                    <Text style={styles.nafathDescription}>
+                      هذه الخطوة مطلوبة من البنك المركزي السعودي لضمان سلامة
+                      بيانات العملاء من خلال مطابقتها مع معلوماتهم في نظام نفاذ.
+                      تحقق من حسابك الآن وابدأ رحلتك التمويلية!
+                    </Text>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.nafathLoginButton,
+                        nafathLoggedIn && styles.nafathLoggedInButton,
+                      ]}
+                      onPress={handleNafathLogin}
+                      disabled={isLoggingIn || nafathLoggedIn}
+                    >
+                      {isLoggingIn ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                      ) : (
+                        <>
+                          <MaterialIcons
+                            name={nafathLoggedIn ? "check-circle" : "login"}
+                            size={24}
+                            color="#fff"
+                            style={styles.nafathButtonIcon}
+                          />
+                          <Text style={styles.nafathButtonText}>
+                            {nafathLoggedIn
+                              ? "تم تسجيل الدخول بنجاح"
+                              : "تسجيل دخول عبر النفاذ الوطني الموحد"}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* Form fields after Nafath login */}
+                {nafathLoggedIn && (
+                  <>
+                    <View style={styles.successContainer}>
+                      <MaterialIcons
+                        name="verified-user"
+                        size={24}
+                        color="#01a736"
+                      />
+                      <Text style={styles.successText}>
+                        تم التحقق من هويتك بنجاح عبر النفاذ الوطني الموحد
+                      </Text>
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                      <MaterialIcons
+                        name="person"
+                        size={20}
+                        color="#001a6e"
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={[styles.textInput, styles.disabledInput]}
+                        placeholder="الاسم الكامل"
+                        placeholderTextColor="#999"
+                        value={formData.name}
+                        editable={false}
+                      />
+                      <MaterialIcons name="lock" size={16} color="#999" />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                      <MaterialIcons
+                        name="phone"
+                        size={20}
+                        color="#001a6e"
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="رقم الجوال"
+                        placeholderTextColor="#999"
+                        value={formData.phone}
+                        onChangeText={(text) =>
+                          setFormData({ ...formData, phone: text })
+                        }
+                        keyboardType="phone-pad"
+                      />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                      <MaterialIcons
+                        name="cake"
+                        size={20}
+                        color="#001a6e"
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="تاريخ الميلاد (YYYY/MM/DD)"
+                        placeholderTextColor="#999"
+                        value={formData.birthdate}
+                        onChangeText={(text) => {
+                          const formatted = formatBirthdate(text);
+                          setFormData({ ...formData, birthdate: formatted });
+                        }}
+                        keyboardType="numeric"
+                        maxLength={10}
+                      />
+                    </View>
+
+                    {/* Payment Method Section */}
+                    <View style={styles.walletContainer}>
+                      <Text style={styles.walletLabel}>طريقة الدفع</Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.walletOption,
+                          cardLinked && styles.linkedWallet,
+                        ]}
+                        onPress={() => setShowCardDropdown(!showCardDropdown)}
+                      >
+                        <MaterialIcons
+                          name="credit-card"
+                          size={24}
+                          color="#001a6e"
+                        />
+                        <Text style={styles.walletText}>بطاقة ائتمانية</Text>
+                        {cardLinked ? (
+                          <View style={styles.linkedIndicator}>
+                            <MaterialIcons
+                              name="check-circle"
+                              size={20}
+                              color="#01a736"
+                            />
+                            <Text style={styles.linkedText}>مربوطة</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.dropdownIndicator}>
+                            <Text style={styles.linkText}>
+                              اضغط لإدخال البيانات
+                            </Text>
+                            <Ionicons
+                              name={
+                                showCardDropdown ? "chevron-up" : "chevron-down"
+                              }
+                              size={20}
+                              color="#001a6e"
+                            />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+
+                      {/* Card dropdown */}
+                      {showCardDropdown && !cardLinked && (
+                        <View style={styles.cardDropdown}>
+                          <View style={styles.cardLogos}>
+                            <Text style={styles.acceptedCardsText}>
+                              البطاقات المقبولة:
+                            </Text>
+                            <View style={styles.logoRow}>
+                              <Text style={styles.cardLogo}>💳 VISA</Text>
+                              <Text style={styles.cardLogo}>💳 MasterCard</Text>
+                              <Text style={styles.cardLogo}>💳 AMEX</Text>
+                              <Text style={styles.cardLogo}>💳 مدى</Text>
+                            </View>
+                          </View>
+
+                          <View style={styles.cardInputContainer}>
+                            <TextInput
+                              style={styles.cardInput}
+                              placeholder="رقم البطاقة (0000 0000 0000 0000)"
+                              placeholderTextColor="#999"
+                              value={formData.cardNumber}
+                              onChangeText={(text) =>
+                                setFormData({ ...formData, cardNumber: text })
+                              }
+                              keyboardType="numeric"
+                              maxLength={19}
+                            />
+                          </View>
+
+                          <View style={styles.cardInputContainer}>
+                            <TextInput
+                              style={styles.cardInput}
+                              placeholder="الاسم على البطاقة"
+                              placeholderTextColor="#999"
+                              value={formData.cardName}
+                              onChangeText={(text) =>
+                                setFormData({ ...formData, cardName: text })
+                              }
+                            />
+                          </View>
+
+                          <View style={styles.cardRowInputs}>
+                            <View
+                              style={[
+                                styles.cardInputContainer,
+                                { flex: 1, marginRight: 10 },
+                              ]}
+                            >
+                              <TextInput
+                                style={styles.cardInput}
+                                placeholder="السنة"
+                                placeholderTextColor="#999"
+                                value={formData.expiryYear}
+                                onChangeText={(text) =>
+                                  setFormData({ ...formData, expiryYear: text })
+                                }
+                                keyboardType="numeric"
+                                maxLength={2}
+                              />
+                            </View>
+                            <View
+                              style={[
+                                styles.cardInputContainer,
+                                { flex: 1, marginRight: 10 },
+                              ]}
+                            >
+                              <TextInput
+                                style={styles.cardInput}
+                                placeholder="الشهر"
+                                placeholderTextColor="#999"
+                                value={formData.expiryMonth}
+                                onChangeText={(text) =>
+                                  setFormData({
+                                    ...formData,
+                                    expiryMonth: text,
+                                  })
+                                }
+                                keyboardType="numeric"
+                                maxLength={2}
+                              />
+                            </View>
+                            <View
+                              style={[styles.cardInputContainer, { flex: 1 }]}
+                            >
+                              <TextInput
+                                style={styles.cardInput}
+                                placeholder="CVV"
+                                placeholderTextColor="#999"
+                                value={formData.cvv}
+                                onChangeText={(text) =>
+                                  setFormData({ ...formData, cvv: text })
+                                }
+                                keyboardType="numeric"
+                                maxLength={3}
+                                secureTextEntry
+                              />
+                            </View>
+                          </View>
+
+                          <Text style={styles.cardNote}>
+                            ملاحظة: سيتم سحب مبلغ 0 ريال للتأكد من صلاحية
+                            البطاقة ومن ثم إعادة المبلغ بشكل تلقائي.
+                          </Text>
+
+                          <TouchableOpacity
+                            style={styles.linkCardButton}
+                            onPress={handleCardLinking}
+                            disabled={isLinkingCard}
+                          >
+                            {isLinkingCard ? (
+                              <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                              <Text style={styles.linkCardButtonText}>
+                                ربط البطاقة
+                              </Text>
+                            )}
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  </>
+                )}
+              </Animated.View>
+
+              {nafathLoggedIn && (
+                <View style={styles.navigationContainer}>
                   <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
                     <TouchableOpacity
                       style={styles.nextButton}
-                      onPress={
-                        currentStep === getTotalSteps()
-                          ? handleSubmit
-                          : handleNext
-                      }
+                      onPress={handleProceedToRiskAssessment}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.nextButtonText}>
-                        {currentStep === getTotalSteps()
-                          ? "إنشاء الحساب"
-                          : "التالي"}
-                      </Text>
+                      <Text style={styles.nextButtonText}>التالي</Text>
                       <Ionicons
                         name="arrow-forward"
                         size={20}
@@ -1036,9 +762,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   progressText: {
-    fontSize: 14,
-    fontFamily: "Almarai-Regular",
-    color: "#666",
+    fontSize: 16,
+    fontFamily: "Almarai-Bold",
+    color: "#01a736",
     marginBottom: 8,
     lineHeight: 20,
   },
@@ -1064,9 +790,17 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 24,
     fontFamily: "Almarai-Bold",
-    color: "#001a6e",
+    color: "#01a736",
     textAlign: "center",
     marginBottom: -6,
+    lineHeight: 40,
+  },
+  stepTitle1: {
+    fontSize: 18,
+    fontFamily: "Almarai-Bold",
+    color: "#01a736",
+    textAlign: "center",
+    marginBottom: 70,
     lineHeight: 40,
   },
   stepSubtitle: {
@@ -1077,40 +811,67 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     lineHeight: 25,
   },
-  choiceCard: {
-    backgroundColor: "#f8f9fa",
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
+  nicLogoContainer: {
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: "rgba(0, 26, 110, 0.1)",
-    elevation: 2,
-    shadowColor: "#001a6e",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    marginBottom: 70,
+    marginLeft: 35,
+    width: 300,
+    height: 40,
   },
-  selectedCard: {
-    borderColor: "#01a736",
-    backgroundColor: "rgba(1, 167, 54, 0.05)",
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontFamily: "Almarai-Bold",
-    color: "#001a6e",
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  selectedCardText: {
-    color: "#01a736",
-  },
-  cardDescription: {
-    fontSize: 14,
+  nafathDescription: {
+    fontSize: 15,
     fontFamily: "Almarai-Regular",
     color: "#666",
     textAlign: "center",
-    lineHeight: 25,
+    lineHeight: 24,
+    marginBottom: 25,
+    paddingHorizontal: 10,
+  },
+  nafathLoginButton: {
+    backgroundColor: "#2e8b7d",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "#2e8b7d",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  nafathLoggedInButton: {
+    backgroundColor: "#01a736",
+  },
+  nafathButtonIcon: {
+    marginRight: 10,
+  },
+  nafathButtonText: {
+    fontSize: 16,
+    fontFamily: "Almarai-Bold",
+    color: "#fff",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  successContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(1, 167, 54, 0.1)",
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(1, 167, 54, 0.3)",
+  },
+  successText: {
+    fontSize: 14,
+    fontFamily: "Almarai-Bold",
+    color: "#01a736",
+    marginLeft: 10,
+    textAlign: "right",
+    flex: 1,
+    lineHeight: 20,
   },
   inputContainer: {
     flexDirection: "row",
@@ -1139,113 +900,10 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     textAlign: "right",
   },
-  // Date picker styles
-  dateInputContainer: {
-    flex: 1,
-    paddingVertical: 15,
-  },
-  dateText: {
-    fontSize: 16,
-    fontFamily: "Almarai-Regular",
-    color: "#333",
-    textAlign: "right",
-  },
-  dateTextPlaceholder: {
+  disabledInput: {
     color: "#999",
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
   },
-  // Yaqeen Service Info
-  yaqeenInfo: {
-    fontSize: 12,
-    fontFamily: "Almarai-Regular",
-    color: "#666",
-    textAlign: "right",
-    lineHeight: 18,
-    marginBottom: 16,
-    paddingHorizontal: 5,
-  },
-
-  verifyButton: {
-    backgroundColor: "#001a6e",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 15,
-    borderRadius: 12,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: "#001a6e",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  verifiedButton: {
-    backgroundColor: "#01a736",
-  },
-  verifyButtonText: {
-    fontSize: 16,
-    fontFamily: "Almarai-Bold",
-    color: "#fff",
-    lineHeight: 23,
-  },
-
-  verificationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f8ff",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(0, 26, 110, 0.2)",
-  },
-  verifiedContainer: {
-    backgroundColor: "rgba(1, 167, 54, 0.1)",
-    borderColor: "rgba(1, 167, 54, 0.3)",
-  },
-  failedContainer: {
-    backgroundColor: "rgba(211, 47, 47, 0.1)",
-    borderColor: "rgba(211, 47, 47, 0.3)",
-  },
-  verificationText: {
-    fontSize: 14,
-    fontFamily: "Almarai-Regular",
-    color: "#001a6e",
-    marginLeft: 8,
-    textAlign: "right",
-    flex: 1,
-    lineHeight: 20,
-  },
-  verifiedText: {
-    fontSize: 14,
-    fontFamily: "Almarai-Bold",
-    color: "#01a736",
-    marginLeft: 8,
-    textAlign: "right",
-    flex: 1,
-    lineHeight: 20,
-  },
-  failedText: {
-    fontSize: 14,
-    fontFamily: "Almarai-Regular",
-    color: "#d32f2f",
-    marginLeft: 8,
-    marginRight: 6,
-    textAlign: "right",
-    flex: 1,
-    lineHeight: 20,
-  },
-  retryButton: {
-    backgroundColor: "#d32f2f",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  retryButtonText: {
-    fontSize: 12,
-    fontFamily: "Almarai-Bold",
-    color: "#fff",
-  },
-  // Wallet Styles
   walletContainer: {
     marginTop: 10,
   },
@@ -1299,7 +957,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     lineHeight: 20,
   },
-  
   cardDropdown: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -1382,66 +1039,6 @@ const styles = StyleSheet.create({
     fontFamily: "Almarai-Bold",
     color: "#fff",
   },
-
-  dropdownContainer: {
-    marginBottom: 16,
-    position: "relative",
-    zIndex: 1000,
-  },
-  dropdownButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    borderWidth: 1,
-    borderColor: "rgba(0, 26, 110, 0.1)",
-    elevation: 2,
-    shadowColor: "#001a6e",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  dropdownText: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: "Almarai-Regular",
-    color: "#333",
-    textAlign: "right",
-    marginLeft: 10,
-  },
-  placeholderText: {
-    color: "#999",
-    lineHeight: 20,
-  },
-  dropdownOptions: {
-    backgroundColor: "#fefefe",
-    borderRadius: 12,
-    marginTop: 4,
-    elevation: 5,
-    shadowColor: "#001a6e",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: "rgba(0, 26, 110, 0.1)",
-    maxHeight: 200,
-  },
-  dropdownOption: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 26, 110, 0.05)",
-  },
-  dropdownOptionText: {
-    fontSize: 16,
-    fontFamily: "Almarai-Regular",
-    color: "#333",
-    textAlign: "right",
-    lineHeight: 30,
-  },
-
   navigationContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1449,17 +1046,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backButton: {
+    backgroundColor: "#f8f9fa",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 25,
+    paddingVertical: 15,
     borderRadius: 25,
     borderWidth: 1,
     borderColor: "#001a6e",
   },
   backButtonText: {
     fontSize: 16,
-    fontFamily: "Almarai-Regular",
+    fontFamily: "Almarai-Bold",
     color: "#001a6e",
     marginLeft: 8,
     lineHeight: 20,
@@ -1469,7 +1067,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 30,
-    paddingVertical: 10,
+    paddingVertical: 15,
     borderRadius: 25,
     elevation: 4,
     shadowColor: "#01a736",
@@ -1482,11 +1080,10 @@ const styles = StyleSheet.create({
     fontFamily: "Almarai-Bold",
     color: "#fefefe",
     marginRight: 8,
-    lineHeight: 29,
+    lineHeight: 20,
   },
   signInContainer: {
-    direction: "rtl",
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 10,
@@ -1502,5 +1099,64 @@ const styles = StyleSheet.create({
     fontFamily: "Almarai-Bold",
     color: "#01a736",
     lineHeight: 20,
+  },
+  // Risk Assessment Styles
+  assessmentTitle: {
+    fontSize: 24,
+    fontFamily: "Almarai-Bold",
+    color: "#01a736",
+    textAlign: "center",
+    marginBottom: 10,
+    lineHeight: 40,
+  },
+  assessmentSubtitle: {
+    fontSize: 16,
+    fontFamily: "Almarai-Regular",
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 30,
+    lineHeight: 25,
+    paddingHorizontal: 10,
+  },
+  questionContainer: {
+    marginBottom: 30,
+  },
+  optionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(0, 26, 110, 0.1)",
+  },
+  selectedOption: {
+    backgroundColor: "rgba(1, 167, 54, 0.1)",
+    borderColor: "#01a736",
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#001a6e",
+    marginLeft: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioButtonSelected: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#01a736",
+  },
+  optionText: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: "Almarai-Regular",
+    color: "#333",
+    textAlign: "right",
+    lineHeight: 24,
   },
 });

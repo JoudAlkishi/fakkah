@@ -11,11 +11,10 @@ import {
 } from "react-native";
 
 export default function DigitalWalletScreen({ navigation }: any) {
-    const [collectedChange] = useState(30.50);
-    const [investedAmount] = useState(478.25);
+    const [collectedChange] = useState(9.50);
+    const [investedAmount] = useState(67.05);
     const [totalReturns] = useState(127.45);
     
-    // Add your Riyal image component
     const RiyalIcon = ({ size = 16, color, style = {} }: { size?: number; color: string; style?: any }) => (
         <Image
             source={require('@/assets/images/riyal.png')} 
@@ -24,7 +23,7 @@ export default function DigitalWalletScreen({ navigation }: any) {
                     width: size,
                     height: size,
                     resizeMode: 'contain',
-                    tintColor: color, // This will change the image color to match the text
+                    tintColor: color, 
                 },
                 style
             ]}
@@ -191,7 +190,7 @@ export default function DigitalWalletScreen({ navigation }: any) {
                 {/* Investment Overview */}
                 <View style={styles.investmentOverview}>
                     <View style={styles.investmentItem}>
-                        <Text style={styles.investmentLabel}>المبلغ المستثمر</Text>
+                        <Text style={styles.investmentLabel}>المبلغ المُستثمر</Text>
                         <View style={styles.amountWithIcon}>
                             <RiyalIcon size={16} color="#001a6e" />
                             <Text style={styles.investmentValue}>{investedAmount.toFixed(2)}</Text>
@@ -199,7 +198,7 @@ export default function DigitalWalletScreen({ navigation }: any) {
                     </View>
                     <View style={styles.investmentDivider} />
                     <View style={styles.investmentItem}>
-                        <Text style={styles.investmentLabel}>إجمالي الأرباح</Text>
+                        <Text style={styles.investmentLabel}>إجمالي العوائد</Text>
                         <View style={styles.amountWithIcon}>
                             <RiyalIcon size={16} color="#10b981" />
                             <Text style={[styles.investmentValue, styles.profitValue]}>+{totalReturns.toFixed(2)}</Text>
@@ -455,6 +454,7 @@ const styles = StyleSheet.create({
         color: "#6b7280",
         marginBottom: 4,
         textAlign: "center",
+        lineHeight: 30
     },
     investmentValue: {
         fontSize: 20,
@@ -493,6 +493,7 @@ const styles = StyleSheet.create({
         fontFamily: "Almarai-Bold",
         color: "#001a6e",
         textAlign: "right",
+        lineHeight: 35
     },
     addButton: {
         flexDirection: "row",

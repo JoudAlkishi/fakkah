@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import InvestmentDashboard from "./InvestmentDashboard";
 import OpportunitiesScreen from "./OpportunitiesScreen";
 import ProfileScreen from "./ProfileScreen";
@@ -21,13 +21,11 @@ export default function Home() {
     return "مساء الخير";
   };
 
-
   const renderContent = () => {
     switch (activeTab) {
       case "investments":
         return (
           <View style={styles.container}>
-         
             <View style={styles.welcomeHeader}>
               <View style={styles.welcomeContent}>
                 <View style={styles.welcomeRow}>
@@ -203,14 +201,24 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 20,
-    fontFamily: "Almarai-Regular",
+    fontFamily: Platform.select({
+      ios: "Almarai",
+      android: "almarai_regular",
+      default: "sans-serif"
+    }),
+    fontWeight: "400",
     color: "#6b7280",
     textAlign: "right",
     lineHeight: 25,
   },
   userName: {
     fontSize: 30,
-    fontFamily: "Almarai-Bold",
+    fontFamily: Platform.select({
+      ios: "Almarai",
+      android: "almarai_bold",
+      default: "sans-serif"
+    }),
+    fontWeight: "700",
     color: "#001a6e",
     textAlign: "right",
     lineHeight: 50,
@@ -221,15 +229,20 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     alignItems: "center",
     justifyContent: "center",
-    paddingBottom: 70, // Reduced from 100 to match smaller navbar
+    paddingBottom: 70,
   },
   contentText: {
     fontSize: 18,
-    fontFamily: "Almarai-Medium",
+    fontFamily: Platform.select({
+      ios: "Almarai-Medium",
+      android: "Almarai-Medium",
+      default: "System"
+    }),
+    fontWeight: Platform.OS === 'web' ? '500' : 'normal',
     color: "#374151",
     textAlign: "center",
   },
-  // Bottom Navigation - Made Smaller
+  // Bottom Navigation
   bottomNavigation: {
     position: "absolute",
     bottom: 0,
@@ -239,8 +252,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#f1f5f9",
     flexDirection: "row",
-    paddingTop: 8, // Reduced from 12
-    paddingBottom: 20, // Reduced from 32
+    paddingTop: 8,
+    paddingBottom: 20,
     paddingHorizontal: 24,
     elevation: 20,
     shadowColor: "#000000",
@@ -253,17 +266,17 @@ const styles = StyleSheet.create({
   navItem: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 4, // Reduced from 8
-    paddingHorizontal: 12, // Reduced from 20
+    paddingVertical: 4,
+    paddingHorizontal: 12,
     flex: 1,
   },
   iconContainer: {
-    width: 32, 
-    height: 32, 
+    width: 32,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 12, 
-    marginBottom: 4, 
+    borderRadius: 12,
+    marginBottom: 4,
     backgroundColor: "#f8fafc",
   },
   activeIconContainer: {
@@ -275,16 +288,24 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   navText: {
-    fontSize: 11, 
-    fontFamily: "Almarai-Medium",
+    fontSize: 11,
+    fontFamily: Platform.select({
+      ios: "Almarai", 
+      android: "almarai_medium", 
+      default: "sans-serif"
+    }),
+    fontWeight: "500", 
     color: "#6b7280",
     textAlign: "center",
-    lineHeight: 14, 
+    lineHeight: 20,
   },
   activeNavText: {
     color: "#01a736",
-    fontFamily: "Almarai-Medium",
+    fontFamily: Platform.select({
+      ios: "Almarai",
+      android: "almarai_medium",
+      default: "sans-serif"
+    }),
+    fontWeight: "600",
   },
-  
-  
 });

@@ -2,6 +2,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,9 +18,10 @@ interface Project {
   totalFunding: number;
   currentFunding: number;
   monthlyReturn: number;
-  riskLevel: "منخفض" | "متوسط" | "عالي";
+  riskLevel: "منخفض المخاطر" | "متوسط المخاطر" | "عالي المخاطر";
   location: string;
   startDate: string;
+  totalEarned: number; 
 }
 
 interface RecentActivity {
@@ -28,8 +30,38 @@ interface RecentActivity {
   source: string;
 }
 
+interface ServiceButton {
+  id: 'fukka' | 'fukka_five' | 'fukka_ten';
+  title: string;
+  example: string;
+  enabled: boolean;
+}
+
 export default function InvestmentDashboard() {
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [selectedService, setSelectedService] = useState<ServiceButton | null>(null);
+  
+  const [serviceButtons, setServiceButtons] = useState<ServiceButton[]>([
+    {
+      id: 'fukka_ten',
+      title: 'فكّة عشر',
+      example: 'مثال: عند شراء بـ 47.25 ريال، سيتم تقريبه لـ 50 ريال واستثمار 2.75 ريال',
+      enabled: false
+    },
+    {
+      id: 'fukka_five',
+      title: 'فكّة خمس',
+      example: 'مثال: عند شراء بـ 23.50 ريال، سيتم تقريبه لـ 25 ريال واستثمار 1.50 ريال',
+      enabled: false
+    },
+    {
+      id: 'fukka',
+      title: 'فكّة',
+      example: 'مثال: عند شراء بـ 15.75 ريال، سيتم سحب 0.25 ريال كفكة للاستثمار',
+      enabled: true
+    }
+  ]);
 
   const RiyalIcon = ({
     size = 16,
@@ -66,9 +98,10 @@ export default function InvestmentDashboard() {
       totalFunding: 50000,
       currentFunding: 35000,
       monthlyReturn: 750,
-      riskLevel: "منخفض",
+      riskLevel: "منخفض المخاطر",
       location: "أبها، منطقة عسير",
       startDate: "يناير 2024",
+      totalEarned: 45.25
     },
     {
       id: "2",
@@ -79,9 +112,10 @@ export default function InvestmentDashboard() {
       totalFunding: 80000,
       currentFunding: 60000,
       monthlyReturn: 1200,
-      riskLevel: "متوسط",
+      riskLevel: "متوسط المخاطر",
       location: "خميس مشيط، منطقة عسير",
       startDate: "مارس 2024",
+      totalEarned: 32.80
     },
     {
       id: "3",
@@ -92,9 +126,10 @@ export default function InvestmentDashboard() {
       totalFunding: 30000,
       currentFunding: 25000,
       monthlyReturn: 900,
-      riskLevel: "عالي",
+      riskLevel: "عالي المخاطر",
       location: "النماص، منطقة عسير",
       startDate: "فبراير 2024",
+      totalEarned: 49.40
     },
   ];
 
@@ -118,25 +153,35 @@ export default function InvestmentDashboard() {
     setExpandedProject(expandedProject === projectId ? null : projectId);
   };
 
+  const handleServicePress = (service: ServiceButton) => {
+    setSelectedService(service);
+    setShowServiceModal(true);
+  };
+
+  const handleEnableService = (serviceId: string) => {
+    setServiceButtons(prev => prev.map(service => ({
+      ...service,
+      enabled: service.id === serviceId
+    })));
+    setShowServiceModal(false);
+  };
+
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {
-      case "منخفض":
+      case "منخفض المخاطر":
         return "#10b981";
-      case "متوسط":
+      case "متوسط المخاطر":
         return "#f59e0b";
-      case "عالي":
+      case "عالي المخاطر":
         return "#ef4444";
       default:
         return "#6b7280";
     }
   };
 
-  const getFundingPercentage = (current: number, total: number) => {
-    return Math.round((current / total) * 100);
-  };
-
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Current Balance Card */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <MaterialIcons
@@ -152,22 +197,91 @@ export default function InvestmentDashboard() {
           <Text style={styles.balanceAmount}>{currentBalance.toFixed(2)}</Text>
           <RiyalIcon size={28} color="#01a736" style={styles.riyalIcon} />
         </View>
-        <Text style={styles.cardSubtitle}>المبلغ المجمع للفكات حتى الآن</Text>
+        
+        {/* Service Buttons */}
+        <View style={styles.serviceButtonsContainer}>
+          {serviceButtons.map((service, index) => (
+            <TouchableOpacity
+              key={service.id}
+              style={[
+                styles.serviceButton,
+                service.enabled ? styles.serviceButtonEnabled : styles.serviceButtonDisabled,
+                index === 0 && styles.serviceButtonFirst,
+                index === serviceButtons.length - 1 && styles.serviceButtonLast
+              ]}
+              onPress={() => handleServicePress(service)}
+            >
+              <Text style={[
+                styles.serviceButtonText,
+                service.enabled ? styles.serviceButtonTextEnabled : styles.serviceButtonTextDisabled
+              ]}>
+                {service.title}
+              </Text>
+              {service.enabled && (
+                <View style={styles.enabledIndicator}>
+                  <MaterialIcons name="check-circle" size={16} color="#01a736" />
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <MaterialIcons name="receipt-long" size={24} color="#3b82f6" />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitleRight}>عدد العمليات</Text>
+
+      {/* Service Modal */}
+      <Modal
+        visible={showServiceModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowServiceModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {selectedService && (
+              <>
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity
+                    onPress={() => setShowServiceModal(false)}
+                    style={styles.modalCloseButton}
+                  >
+                    <MaterialIcons name="close" size={24} color="#6b7280" />
+                  </TouchableOpacity>
+                  <Text style={styles.modalTitle}>{selectedService.title}</Text>
+                </View>
+                
+                <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+                  <View style={styles.modalSection}>
+                   
+                  </View>
+                  
+                  <View style={styles.modalSection}>
+                    <View style={styles.exampleContainer}>
+                      <Text style={styles.modalExample}>{selectedService.example}</Text>
+                    </View>
+                  </View>
+                  
+                  {selectedService.enabled ? (
+                    <View style={styles.enabledBadge}>
+                      <MaterialIcons name="check-circle" size={20} color="#01a736" />
+                      <Text style={styles.enabledText}>هذه الخدمة مُفعلة حالياً</Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.enableButton}
+                      onPress={() => handleEnableService(selectedService.id)}
+                    >
+                      <Text style={styles.enableButtonText}>تفعيل هذه الخدمة</Text>
+                      <MaterialIcons name="arrow-forward" size={20} color="#ffffff" />
+                    </TouchableOpacity>
+                  )}
+                </ScrollView>
+              </>
+            )}
           </View>
         </View>
-        <Text style={styles.statisticNumber}>{totalTransactions}</Text>
-        <Text style={styles.cardSubtitle}>
-          جمعت فكة من {totalTransactions} عملية شراء
-        </Text>
-      </View>
+      </Modal>
 
+      {/* Supported Projects Card */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <MaterialIcons name="business-center" size={24} color="#8b5cf6" />
@@ -207,109 +321,34 @@ export default function InvestmentDashboard() {
                   {project.description}
                 </Text>
 
-                <View style={styles.projectDetailsGrid}>
-                  <View style={styles.detailItem}>
-                    <MaterialIcons
-                      name="location-on"
-                      size={16}
-                      color="#6b7280"
-                    />
-                    <Text style={styles.detailLabel}>الموقع</Text>
-                    <Text style={styles.detailValue}>{project.location}</Text>
-                  </View>
-
-                  <View style={styles.detailItem}>
-                    <MaterialIcons
-                      name="calendar-today"
-                      size={16}
-                      color="#6b7280"
-                    />
-                    <Text style={styles.detailLabel}>تاريخ البدء</Text>
-                    <Text style={styles.detailValue}>{project.startDate}</Text>
-                  </View>
-
-                  <View style={styles.detailItem}>
-                    <MaterialIcons
-                      name="trending-up"
-                      size={16}
-                      color="#6b7280"
-                    />
-                    <Text style={styles.detailLabel}>العائد الشهري</Text>
-                    <View style={styles.monthlyReturnContainer}>
-                      <Text style={styles.detailValue}>
-                        {project.monthlyReturn}
-                      </Text>
-                      <RiyalIcon
-                        size={14}
-                        color="#1f2937"
-                        style={styles.smallRiyalIcon}
-                      />
+                {/* Total Earnings */}
+                <View style={styles.earningsCard}>
+                  <View style={styles.earningsContent}>
+                    <Text style={styles.earningsLabel}>إجمالي العائد المحقق</Text>
+                    <View style={styles.earningsValueContainer}>
+                      <Text style={styles.earningsValue}>{project.totalEarned.toFixed(2)}</Text>
+                      <RiyalIcon size={18} color="#01a736" style={styles.earningsRiyal} />
                     </View>
-                  </View>
-
-                  <View style={styles.detailItem}>
-                    <MaterialIcons
-                      name="security"
-                      size={16}
-                      color={getRiskColor(project.riskLevel)}
-                    />
-                    <Text style={styles.detailLabel}>مستوى المخاطرة</Text>
-                    <Text
-                      style={[
-                        styles.detailValue,
-                        { color: getRiskColor(project.riskLevel) },
-                      ]}
-                    >
-                      {project.riskLevel}
-                    </Text>
                   </View>
                 </View>
 
-                <View style={styles.fundingProgress}>
-                  <View style={styles.fundingHeader}>
-                    <Text style={styles.fundingTitle}>حالة التمويل</Text>
-                    <Text style={styles.fundingPercentage}>
-                      {getFundingPercentage(
-                        project.currentFunding,
-                        project.totalFunding
-                      )}
-                      %
+                {/* Basic Details */}
+                <View style={styles.projectDetailsGrid}>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailValue}>{project.location}</Text>
+                    <MaterialIcons name="location-on" size={16} color="#6b7280" />
+                  </View>
+
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailValue}>{project.startDate}</Text>
+                    <MaterialIcons name="calendar-today" size={16} color="#6b7280" />
+                  </View>
+
+                  <View style={styles.detailItem}>
+                    <Text style={[styles.detailValue, { color: getRiskColor(project.riskLevel) }]}>
+                      {project.riskLevel}
                     </Text>
-                  </View>
-                  <View style={styles.progressBar}>
-                    <View
-                      style={[
-                        styles.progressFill,
-                        {
-                          width: `${getFundingPercentage(
-                            project.currentFunding,
-                            project.totalFunding
-                          )}%`,
-                        },
-                      ]}
-                    />
-                  </View>
-                  <View style={styles.fundingAmounts}>
-                    <View style={styles.fundingAmountContainer}>
-                      <Text style={styles.fundingAmount}>
-                        {project.currentFunding.toLocaleString()}
-                      </Text>
-                      <RiyalIcon
-                        size={14}
-                        color="#1f2937"
-                        style={styles.smallRiyalIcon}
-                      />
-                    </View>
-                    <View style={styles.fundingTotalContainer}>
-                      <Text style={styles.fundingTotal}>
-                        من {project.totalFunding.toLocaleString()}
-                      </Text>
-                      <RiyalIcon
-                        size={14}
-                        color="#6b7280"
-                        style={styles.smallRiyalIcon}
-                      />
-                    </View>
+                    <MaterialIcons name="security" size={16} color={getRiskColor(project.riskLevel)} />
                   </View>
                 </View>
               </View>
@@ -322,6 +361,7 @@ export default function InvestmentDashboard() {
         ))}
       </View>
 
+      {/* Impact Card */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <MaterialIcons name="trending-up" size={24} color="#f59e0b" />
@@ -349,20 +389,8 @@ export default function InvestmentDashboard() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.angelInvestorCard}>
-        <View style={styles.angelInvestorContent}>
-          <MaterialIcons name="stars" size={32} color="#ffffff" />
-          <View style={styles.angelInvestorText}>
-            <Text style={styles.angelInvestorTitle}>اصبح مستثمر جريء</Text>
-            <Text style={styles.angelInvestorSubtitle}>
-              استثمر في الفرص الكبيرة واحصل على عوائد أكبر
-            </Text>
-          </View>
-          <MaterialIcons name="arrow-forward-ios" size={20} color="#ffffff" />
-        </View>
-      </TouchableOpacity>
-
-      <View style={styles.card}>
+      {/* Recent Activity Card */}
+      <View style={[styles.card]}>
         <View style={styles.cardHeader}>
           <MaterialIcons name="history" size={24} color="#6366f1" />
           <View style={{ flex: 1 }}>
@@ -377,7 +405,7 @@ export default function InvestmentDashboard() {
             <View style={styles.activityDetails}>
               <View style={styles.activityAmountContainer}>
                 <Text style={styles.activityAmount}>
-                  أضفت {activity.amount.toFixed(2)}
+                  أُضيفت {activity.amount.toFixed(2)}
                 </Text>
                 <RiyalIcon
                   size={14}
@@ -385,28 +413,34 @@ export default function InvestmentDashboard() {
                   style={styles.smallRiyalIcon}
                 />
               </View>
-              <Text style={styles.activitySource}>من {activity.source}</Text>
             </View>
             <Text style={styles.activityDate}>{activity.date}</Text>
           </View>
         ))}
       </View>
 
-      <View style={[styles.card, styles.lastCard]}>
+
+      {/* AI Prediction Card */}
+      <View style={[styles.card,styles.lastCard]}>
         <View style={styles.cardHeader}>
-          <MaterialIcons name="show-chart" size={24} color="#10b981" />
+          <RiyalIcon size={24} color="#01a736" />
           <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitleRight}>نسبة العائد المتوقع</Text>
+            <Text style={styles.cardTitleRight}>توقعات الفكّة الشهرية</Text>
           </View>
         </View>
-        <Text style={styles.returnPercentage}>{expectedReturn}%</Text>
-        <Text style={styles.returnSubtitle}>التوقعات المستقبلية</Text>
-        <View style={styles.disclaimer}>
-          <MaterialIcons name="info-outline" size={16} color="#6b7280" />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.disclaimerTextRight}>
-              هذا تقدير وليس مضمون - قد تختلف النتائج الفعلية
-            </Text>
+        
+        <Text style={styles.cardSubtitle}>
+          بناءًا على معدل عمليات شرائك الحالية
+        </Text>
+
+        {/* AI Prediction Container */}
+        <View style={styles.aiPredictionContainer}>
+          {/* Predicted Fukka Amount */}
+          <View style={styles.predictedBalanceContainer}>
+            <View style={styles.predictedBalanceRow}>
+              <Text style={styles.predictedAmount}>18.35</Text>
+              <RiyalIcon size={24} color="#01a736" style={styles.riyalIcon} />
+            </View>
           </View>
         </View>
       </View>
@@ -425,7 +459,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,
+    marginBottom: 30,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -438,7 +472,7 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 8,
     gap: 8,
   },
   cardTitleRight: {
@@ -454,12 +488,14 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "right",
     lineHeight: 20,
+    marginBottom: 16,
+    marginTop: 4,
   },
   balanceContainer: {
     flexDirection: "row-reverse",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   balanceAmount: {
     fontSize: 32,
@@ -469,6 +505,342 @@ const styles = StyleSheet.create({
   },
   riyalIcon: {
     marginRight: 8,
+  },
+  // Service Buttons Styles
+  serviceButtonsContainer: {
+    flexDirection: "row",
+    backgroundColor: "#f1f5f9",
+    borderRadius: 12,
+    padding: 4,
+    marginTop: 8,
+  },
+  serviceButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    marginHorizontal: 2,
+  },
+  serviceButtonFirst: {
+    marginLeft: 0,
+  },
+  serviceButtonLast: {
+    marginRight: 0,
+  },
+  serviceButtonEnabled: {
+    backgroundColor: "#ffffff",
+    shadowColor: "#01a736",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  serviceButtonDisabled: {
+    backgroundColor: "transparent",
+  },
+  serviceButtonText: {
+    fontSize: 13,
+    fontFamily: "Almarai-Bold",
+    textAlign: "center",
+    fontWeight: "normal",
+  },
+  serviceButtonTextEnabled: {
+    color: "#01a736",
+    fontFamily: "Almarai-Bold",
+  },
+  serviceButtonTextDisabled: {
+    color: "#9ca3af",
+    fontFamily: "Almarai-Bold",
+  },
+  enabledIndicator: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    padding: 2,
+  },
+  aiPredictionContainer: {
+    backgroundColor: "#f0fdf4",
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#bbf7d0",
+    alignItems: "center", 
+    justifyContent: "center", 
+  },
+  predictedBalanceContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    alignSelf: "center",
+  },
+  predictedBalanceRow: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    alignSelf: "center",
+  },
+  predictedAmount: {
+    fontSize: 32,
+    fontFamily: "Almarai-ExtraBold",
+    color: "#01a736",
+    textAlign: "center",
+  },
+  aiPredictionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginBottom: 16,
+  },
+  aiPredictionTitle: {
+    fontSize: 16,
+    fontFamily: "Almarai-Bold",
+    color: "#01a736",
+    textAlign: "right",
+    marginRight: 8,
+  },
+  changeIndicator: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    backgroundColor: "#f0fdf4",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  changeAmount: {
+    fontSize: 14,
+    fontFamily: "Almarai-Bold",
+    color: "#01a736",
+    marginHorizontal: 4,
+  },
+  confidenceText: {
+    fontSize: 12,
+    fontFamily: "Almarai-Medium",
+    color: "#6b7280",
+    textAlign: "center",
+  },
+  breakdownContainer: {
+    marginBottom: 20,
+  },
+  breakdownTitle: {
+    fontSize: 14,
+    fontFamily: "Almarai-Bold",
+    color: "#374151",
+    textAlign: "right",
+    marginBottom: 12,
+  },
+  breakdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+  },
+  breakdownIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  breakdownDetails: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginRight: 12,
+  },
+  breakdownLabel: {
+    fontSize: 13,
+    fontFamily: "Almarai-Medium",
+    color: "#374151",
+    textAlign: "right",
+  },
+  breakdownAmountContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+  },
+  breakdownAmount: {
+    fontSize: 13,
+    fontFamily: "Almarai-Bold",
+    color: "#1f2937",
+  },
+  tinyRiyalIcon: {
+    marginRight: 4,
+  },
+  aiInsightContainer: {
+    backgroundColor: "#fffbeb",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+  },
+  aiInsightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginBottom: 8,
+  },
+  aiInsightTitle: {
+    fontSize: 14,
+    fontFamily: "Almarai-Bold",
+    color: "#d97706",
+    textAlign: "right",
+    marginRight: 6,
+  },
+  aiInsightText: {
+    fontSize: 13,
+    fontFamily: "Almarai-Regular",
+    color: "#92400e",
+    textAlign: "right",
+    lineHeight: 20,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  modalContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 0,
+    width: "100%",
+    maxWidth: 400,
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: "Almarai-Bold",
+    color: "#1f2937",
+    textAlign: "right",
+    flex: 1,
+    marginRight: 16,
+    lineHeight: 40
+  },
+  modalContent: {
+    paddingHorizontal: 20,
+  },
+  modalSection: {
+    marginBottom: 24,
+  },
+  modalSectionTitle: {
+    fontSize: 16,
+    fontFamily: "Almarai-Bold",
+    color: "#1f2937",
+    textAlign: "right",
+    lineHeight: 40
+  },
+  modalDescription: {
+    fontSize: 14,
+    fontFamily: "Almarai-Regular",
+    color: "#4b5563",
+    textAlign: "right",
+    lineHeight: 22,
+  },
+  exampleContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#fef3c7",
+    padding: 16,
+    borderRadius: 12,
+  },
+  modalExample: {
+    fontSize: 14,
+    fontFamily: "Almarai-Regular",
+    color: "#92400e",
+    textAlign: "right",
+    lineHeight: 20,
+    flex: 1,
+    marginRight: 8,
+  },
+  enabledBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f0fdf4",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  enabledText: {
+    fontSize: 16,
+    fontFamily: "Almarai-Medium",
+    color: "#01a736",
+    marginRight: 8,
+  },
+  enableButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#01a736",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  enableButtonText: {
+    fontSize: 16,
+    fontFamily: "Almarai-Bold",
+    color: "#ffffff",
+    marginLeft: 8,
+  },
+  // New Earnings Card Styles
+  earningsCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0fdf4",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#bbf7d0",
+  },
+  earningsContent: {
+    flex: 1,
+    marginRight: 12,
+    alignItems: "flex-end",
+  },
+  earningsLabel: {
+    fontSize: 14,
+    fontFamily: "Almarai-Medium",
+    color: "#166534",
+    textAlign: "right",
+    marginBottom: 4,
+  },
+  earningsValueContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+  },
+  earningsValue: {
+    fontSize: 24,
+    fontFamily: "Almarai-Bold",
+    color: "#01a736",
+  },
+  earningsRiyal: {
+    marginRight: 6,
   },
   monthlyReturnContainer: {
     flexDirection: "row-reverse",
@@ -496,7 +868,7 @@ const styles = StyleSheet.create({
     fontFamily: "Almarai-Bold",
     color: "#3b82f6",
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   projectItem: {
     flexDirection: "row",
@@ -558,6 +930,7 @@ const styles = StyleSheet.create({
   detailItem: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "flex-end",
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: "#f9fafb",
@@ -574,13 +947,13 @@ const styles = StyleSheet.create({
     textAlign: "right",
     marginRight: 10,
   },
-
   detailValue: {
     fontSize: 13,
     fontFamily: "Almarai-Bold",
     color: "#1f2937",
     lineHeight: 35,
-    marginLeft: -6,
+    textAlign: "right",
+    marginRight: 10
   },
   fundingProgress: {
     backgroundColor: "#f9fafb",
@@ -737,7 +1110,7 @@ const styles = StyleSheet.create({
     fontFamily: "Almarai-Bold",
     color: "#10b981",
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   returnSubtitle: {
     fontSize: 14,
@@ -745,6 +1118,7 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
     marginBottom: 16,
+    marginTop: 4,
   },
   disclaimer: {
     flexDirection: "row",
