@@ -1,14 +1,80 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import InvestmentDashboard from "./InvestmentDashboard";
 import OpportunitiesScreen from "./OpportunitiesScreen";
 import ProfileScreen from "./ProfileScreen";
 
 type TabId = "opportunities" | "investments" | "profile";
 
+interface NotificationPopupProps {
+  visible: boolean;
+  onClose: () => void;
+  onAccept: () => void;
+  onIgnore: () => void;
+}
+
+const NotificationPopup: React.FC<NotificationPopupProps> = ({
+  visible,
+  onClose,
+  onAccept,
+  onIgnore,
+}) => (
+  <Modal
+    visible={visible}
+    transparent={true}
+    animationType="fade"
+    onRequestClose={onClose}
+  >
+    <View style={styles.notificationOverlay}>
+      <View style={styles.notificationContainer}>
+        <View style={styles.notificationHeader}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.notificationCloseButton}
+          >
+            <MaterialIcons name="close" size={24} color="#6b7280" />
+          </TouchableOpacity>
+          <View style={styles.notificationTitleContainer}>
+            <Text style={styles.notificationTitle}>التنبيهات</Text>
+          </View>
+        </View>
+        
+        <View style={styles.notificationContent}>
+          <View style={styles.notificationMessageContainer}>
+            <MaterialIcons name="info" size={20} color="#3b82f6" />
+            <Text style={styles.notificationMessage}>
+              لاحظنا أن متوسط مشترياتك اليومية قد انخفض إلى النصف مؤخراً. 
+              نوصي بتعديل مستوى المخاطر من "متوسط" إلى "منخفض" لتحسين عوائدك 
+              بما يتناسب مع نمط استهلاكك الحالي
+            </Text>
+          </View>
+          
+          <View style={styles.notificationActions}>
+            <TouchableOpacity
+              style={styles.ignoreButton}
+              onPress={onIgnore}
+            >
+              <Text style={styles.ignoreButtonText}>تجاهل التوصية</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={onAccept}
+            >
+              <Text style={styles.acceptButtonText}>قبول التغيير</Text>
+              <MaterialIcons name="check" size={18} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </Modal>
+);
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId>("investments");
+  const [showNotificationPopup, setShowNotificationPopup] = useState(false);
 
   const handleTabChange = (tab: TabId) => {
     setActiveTab(tab);
@@ -21,6 +87,22 @@ export default function Home() {
     return "مساء الخير";
   };
 
+  const handleNotificationPress = () => {
+    setShowNotificationPopup(true);
+  };
+
+  const handleAcceptRiskChange = () => {
+    // Logic to change risk level from medium to low
+    console.log("Risk level changed to low");
+    setShowNotificationPopup(false);
+  };
+
+  const handleIgnoreRiskChange = () => {
+    // Logic to ignore the recommendation
+    console.log("Risk change recommendation ignored");
+    setShowNotificationPopup(false);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "investments":
@@ -29,7 +111,10 @@ export default function Home() {
             <View style={styles.welcomeHeader}>
               <View style={styles.welcomeContent}>
                 <View style={styles.welcomeRow}>
-                  <TouchableOpacity style={styles.notificationIcon}>
+                  <TouchableOpacity 
+                    style={styles.notificationIcon}
+                    onPress={handleNotificationPress}
+                  >
                     <MaterialIcons
                       name="notifications-none"
                       size={20}
@@ -61,6 +146,14 @@ export default function Home() {
 
   return (
     <View style={styles.mainContainer}>
+      {/* Notification Popup */}
+      <NotificationPopup
+        visible={showNotificationPopup}
+        onClose={() => setShowNotificationPopup(false)}
+        onAccept={handleAcceptRiskChange}
+        onIgnore={handleIgnoreRiskChange}
+      />
+
       {/* Content */}
       {renderContent()}
 
@@ -241,6 +334,124 @@ const styles = StyleSheet.create({
     fontWeight: Platform.OS === 'web' ? '500' : 'normal',
     color: "#374151",
     textAlign: "center",
+  },
+  // Notification Popup Styles
+  notificationOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  notificationContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 0,
+    width: "100%",
+    maxWidth: 400,
+    maxHeight: "70%",
+  },
+  notificationHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  notificationCloseButton: {
+    padding: 4,
+  },
+  notificationTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "flex-end",
+    marginRight: 16,
+  },
+  notificationTitle: {
+    fontSize: 18,
+    lineHeight: 24,
+    fontFamily: Platform.select({
+      ios: "Almarai",
+      android: "almarai_bold",
+      default: "sans-serif",
+      
+      
+    }),
+    fontWeight: "700",
+    color: "#1f2937",
+    textAlign: "right",
+    marginRight: 8,
+  },
+  notificationContent: {
+    padding: 20,
+  },
+  notificationMessageContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#eff6ff",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  notificationMessage: {
+    fontSize: 15,
+    fontFamily: Platform.select({
+      ios: "Almarai",
+      android: "almarai_regular",
+      default: "sans-serif"
+    }),
+    fontWeight: "400",
+    color: "#1e40af",
+    textAlign: "right",
+    lineHeight: 24,
+    flex: 1,
+    marginRight: 12,
+  },
+  notificationActions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  acceptButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#01a736",
+    padding: 16,
+    borderRadius: 12,
+  },
+  acceptButtonText: {
+    fontSize: 16,
+    fontFamily: Platform.select({
+      ios: "Almarai",
+      android: "almarai_bold",
+      default: "sans-serif"
+    }),
+    fontWeight: "700",
+    color: "#ffffff",
+    marginLeft: 8,
+  },
+  ignoreButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f1f5f9",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  ignoreButtonText: {
+    fontSize: 16,
+    fontFamily: Platform.select({
+      ios: "Almarai",
+      android: "almarai_medium",
+      default: "sans-serif"
+    }),
+    fontWeight: "500",
+    color: "#64748b",
   },
   // Bottom Navigation
   bottomNavigation: {

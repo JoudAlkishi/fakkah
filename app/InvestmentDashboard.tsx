@@ -86,7 +86,7 @@ export default function InvestmentDashboard() {
     />
   );
 
-  const currentBalance = 127.45;
+  const currentBalance = 9.50;
   const totalTransactions = 45;
   const supportedProjects: Project[] = [
     {
